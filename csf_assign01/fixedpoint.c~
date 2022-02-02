@@ -1,0 +1,330 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+#include <assert.h>
+#include "fixedpoint.h"
+
+// You can remove this once all of the functions are fully implemented
+static Fixedpoint DUMMY;
+
+Fixedpoint fixedpoint_create(uint64_t whole) {
+  Fixedpoint num;
+  num.w = whole;
+  num.f = 0;
+  num.tag = '+';
+  return num;
+}
+
+Fixedpoint fixedpoint_create2(uint64_t whole, uint64_t frac) {
+  Fixedpoint num;
+  num.w = whole;
+  num.f = frac;
+  num.tag = '+';
+  assert(num.w == whole);
+  assert(num.f == frac);
+  assert(num.tag == '+');return num;
+}
+
+
+/*Helper for MS2
+void setLast4bits(uint64_t* num, char letter){
+  *num = *num << 4;
+  if (isalpha(letter)){
+    *num += (letter - 87);
+  }
+  else {
+    *num += (letter - 48);
+    }
+ }*/
+	
+    
+//Part of MS2
+Fixedpoint fixedpoint_create_from_hex(const char *hex) {
+  /*
+  // TODO: implement
+  Fixedpoint num;
+  num.w = 0;
+  num.f = 0;
+  uint64_t len = strlen(hex);
+  uint64_t start = 0;
+  if (hex[0] == '-'){
+    num.tag = '-';
+    start = 1;
+  }
+  else {
+    num.tag = '+';
+  }
+    
+  uint64_t count = start;
+  while (count < len && hex[count] != '.'){
+    setLast4bits(&num.w, hex[count]);
+    count++;
+  }
+
+  count++;
+  uint64_t fracPlaces = 0;
+  while (count < len){
+    setLast4bits(&num.f, hex[count]);
+    count++;
+    fracPlaces++;
+  }
+  num.f = num.f << ((16-fracPlaces)*4);
+  
+  
+  // assert(0);
+  return num;*/
+  return DUMMY;
+}
+
+uint64_t fixedpoint_whole_part(Fixedpoint val) {
+  uint64_t whole = val.w;
+  assert(whole == val.w);
+  return whole;
+}
+
+uint64_t fixedpoint_frac_part(Fixedpoint val) {
+  uint64_t frac = val.f;
+  assert(frac == val.f);
+  return frac;
+}
+
+
+//Part of MS2
+Fixedpoint fixedpoint_add(Fixedpoint left, Fixedpoint right) {
+  /*
+  // TODO: implement
+  if (!fixedpoint_is_valid(left) || !fixedpoint_is_valid(right)){
+    return DUMMY;
+  } // check that this is handled correctly
+
+
+  Fixedpoint sum;
+
+  if (fixedpoint_is_neg(left)  == fixedpoint_is_neg(right)){ 
+
+    // Check if + or -
+    if (fixedpoint_is_neg(left)){
+      sum.tag = '-';
+    }
+    else {
+      sum.tag = '+';
+    }
+
+    // add parts together
+    sum.w = left.w + right.w;
+    sum.f = left.f + right.f;
+
+    // check if fractional part overflows
+    if (is_in_overflow(sum.f, left.f, right.f)) {
+      sum.w += 1;
+    }
+
+    // check if fixedpoint overflowed
+    if (is_in_overflow(sum.w, left.w, right.w)){
+      if (sum.tag == '+') {
+	sum.tag = 'O';
+      }
+      else if (sum.tag == '-') {
+        sum.tag = 'o';
+      }
+    }
+  }
+
+  else if (fixedpoint_is_neg(left)){
+    fixedpoint_negate(left);
+    sum = fixedpoint_sub(right,left);
+  }
+  else {
+    fixedpoint_negate(right);
+    sum = fixedpoint_sub(left, right);
+  }
+
+  //assert(0);
+  return sum;*/
+  return DUMMY;
+}
+
+/* Helper funcitons for MS2
+char is_in_overflow(uint64_t sum, uint64_t num1, uint64_t num2){
+  if (sum < num1 || sum < num2){
+    return 1;
+  }
+  return 0;
+}
+
+char pass_through_zero(uint64_t diff, uint64_t num1, uint64_t num2){
+  if (diff > num1 || diff > num2){
+    return 1;
+  }
+  return 0;
+  }*/
+
+//Part of MS2
+Fixedpoint fixedpoint_sub(Fixedpoint left, Fixedpoint right) {
+  /*
+  if (!fixedpoint_is_valid(left) || !fixedpoint_is_valid(right)){
+    return DUMMY;
+  } // check that this is handled correctly
+
+
+  Fixedpoint diff;
+
+  if (fixedpoint_is_neg(left)  == fixedpoint_is_neg(right)){
+
+    // Check if + or -
+    if (fixedpoint_is_neg(left)){
+      diff.tag = '-';
+    }
+    else {
+      diff.tag = '+';
+    }
+
+    // add parts together
+    diff.w = left.w - right.w;
+    diff.f = left.f - right.f;
+
+    // check if fractional part requires borrowing
+    if (pass_through_zero(diff.f, left.f, right.f)) {
+      diff.w -= 1;
+    }
+
+    // check if fixedpoint negated
+    if (pass_through_zero(diff.w, left.w, right.w)){
+      fixedpoint_negate(diff);
+    }
+  }
+
+  else if (fixedpoint_is_neg(left)){
+    fixedpoint_negate(left);
+    diff = fixedpoint_add(right, left);
+  }
+  else {
+    fixedpoint_negate(right);
+    diff = fixedpoint_sub(left, right);
+  }
+    
+  return diff;*/
+  return DUMMY;
+}
+
+//Part of MS2
+Fixedpoint fixedpoint_negate(Fixedpoint val) {
+  switch (val.tag){
+    case '+':
+      val.tag = '-';
+      break;
+    case '-':
+      val.tag = '+';
+      break;
+    case 'O':
+      val.tag = 'o';
+      break;
+    case 'o':
+      val.tag = 'O';
+      break;
+    case 'U':
+      val.tag = 'u';
+      break;
+    case 'u':
+      val.tag = 'U';
+      break;
+    default:
+      val.tag = '/';
+      break;
+  }
+
+
+  return val;
+}
+
+//Part of MS2
+Fixedpoint fixedpoint_halve(Fixedpoint val) {
+  assert(0);
+  return DUMMY;
+}
+
+//Part of MS2
+Fixedpoint fixedpoint_double(Fixedpoint val) {
+  assert(0);
+  return DUMMY;
+}
+
+//Part of MS2
+int fixedpoint_compare(Fixedpoint left, Fixedpoint right) {
+  assert(0);
+  return 0;
+}
+
+//Part of MS2
+int fixedpoint_is_zero(Fixedpoint val) {
+  if ((val.tag == '+' || val.tag == '-') && val.f == 0 && val.w == 0){
+    return 1;
+  }
+  return 0;
+}
+
+//Part of MS2
+int fixedpoint_is_err(Fixedpoint val) {
+  if (val.tag == '/'){
+    return 1;
+  }
+  return 0;
+}
+
+//Part of MS2
+int fixedpoint_is_neg(Fixedpoint val) {
+  if (val.tag == '-'){
+    return 1;
+  }
+  return 0;
+}
+
+//Part of MS2
+int fixedpoint_is_overflow_neg(Fixedpoint val) {
+  if (val.tag == 'o'){
+    return 1;
+  }
+  return 0;
+}
+
+//Part of MS2
+int fixedpoint_is_overflow_pos(Fixedpoint val) {
+  if (val.tag == 'O'){
+    return 1;
+  }
+  return 0;
+}
+
+//Part of MS2
+int fixedpoint_is_underflow_neg(Fixedpoint val) {
+  if (val.tag == 'u'){
+    return 1;
+  }
+  return 0;
+}
+
+//Part of MS2
+int fixedpoint_is_underflow_pos(Fixedpoint val) {
+  if (val.tag == 'U'){
+    return 1;
+  }
+  return 0;
+}
+
+//Part of MS2
+int fixedpoint_is_valid(Fixedpoint val) {
+  if (val.tag == '+' || val.tag == '-'){
+    return 1;
+  }
+  return 0;
+}
+
+//Part of MS2
+char *fixedpoint_format_as_hex(Fixedpoint val) {
+  assert(0);
+  char *s = malloc(20);
+  strcpy(s, "<invalid>");
+  return s;
+}
+
