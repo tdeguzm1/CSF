@@ -13,7 +13,7 @@
 #include "fixedpoint.h"
 
 // You can remove this once all of the functions are fully implemented
-static Fixedpoint DUMMY;
+//static Fixedpoint DUMMY;
 
 /*
  * Create a fixedpoint value representing an integer
@@ -77,55 +77,6 @@ int validChar(Fixedpoint *val, char ch, int count){
     
 //Part of MS2
 Fixedpoint fixedpoint_create_from_hex(const char *hex) {
-  /*Fixedpoint num; //bad way
-  num.w = 0;
-  num.f = 0;
-
-  int len = strlen(hex);
-  int start = 0;
-
-  if (hex[0] == '-'){
-    num.tag = '-';
-    start = 1;
-    len--;
-  }
-  else {
-    num.tag = '+';
-  }
-
-  char *decimal = strchr(hex, '.');
-  char whole[16];
-  if (decimal != NULL) {
-    if (decimal-&hex[start] > 16){
-      num.tag = '/';
-      return num;
-    }
-    strncpy(whole, &hex[start], len);
-    char *remainder;
-    num.w = strtoul(whole, &remainder, 16);
-    if (strlen(remainder) > 17){
-      num.tag = '/';
-      return num;
-    }
-    char frac[16];
-    strncpy(frac, &remainder[1], strlen(remainder)-1);
-    num.f = strtoul(frac, &remainder, 16);
-    num.f = num.f << (16 - (strlen(frac))-1) * 4;
-  }
-  else {
-    if (len > 16){
-      num.tag = '/';
-      return num;
-    }
-    strncpy(whole, &hex[start], len);
-    char *remainder;
-    num.w = strtoul(whole, &remainder, 16);
-  }
-
-  return num;*/
-
-  
-  // TODO: implement
   Fixedpoint num;
   num.w = 0;
   num.f = 0;
@@ -139,47 +90,22 @@ Fixedpoint fixedpoint_create_from_hex(const char *hex) {
   else if (validChar(&num, hex[0], 1)){
     num.tag = '+';
   }
-    
-  //uint64_t count = start;
+
   char *decimal = strchr(hex, '.');
-  /*if (decimal == NULL){
-    decimal = &hex[strlen(hex)];
-  }*/
-  //printf("reached here happy");
-  //while (count < len && hex[count] != '.'){
   for (int i = 0; &hex[i+start] != decimal && i+start < len; i++){
-    /*if (!(isdigit(hex[count]) && hex[count] >= 'a' && hex[count] <= 'f')){
-      num.tag = '/';
-      printf("sad whole error");
-      return num;
-    }*/
     validChar(&num, hex[i+start], i+1);
     setLast4bits(&num.w, hex[i+start]);
-    //count++;
   }
 
   //count++;
   if (decimal != NULL){
     int i;
     for (i = 1; &hex[strlen(hex)] != &decimal[i]; i++){
-      /*if (!(isdigit(hex[count]) && hex[count] >= 'a' && hex[count] <= 'f')){
-        num.tag = '/';
-        printf("sad frac error");
-        return num;
-      }*/
       validChar(&num, decimal[i], i);
       setLast4bits(&num.f, decimal[i]);
-      //count++;
     }
     num.f = num.f << ((16-(i-1))*4);
   }
-  /*if (count > 33) {
-    num.tag = '/';
-    printf("total count error");
-  }*/
-  
-  
-  // assert(0);
   return num;
 }
 
@@ -213,7 +139,6 @@ uint64_t fixedpoint_frac_part(Fixedpoint val) {
 
 //Part of MS2
 Fixedpoint fixedpoint_add(Fixedpoint left, Fixedpoint right) {
-  // TODO: implement
   assert(fixedpoint_is_valid(left) && fixedpoint_is_valid(right));
 
   Fixedpoint sum;
@@ -240,21 +165,12 @@ Fixedpoint fixedpoint_add(Fixedpoint left, Fixedpoint right) {
     // check if fixedpoint whole overflowed
     if (is_in_overflow(sum.w, left.w, right.w)){
       sum = to_overflow(sum);
-      /*if (sum.tag == '+') {
-	      sum.tag = 'O';
-      }
-      else if (sum.tag == '-') {
-        sum.tag = 'o';
-      }*/
     }
   }
 
   else if (fixedpoint_is_neg(left)){
-    //printf("In add before negate: %d\n", fixedpoint_is_neg(left));
 
     left = fixedpoint_negate(left);
-    //printf("In add after negate: %d\n", fixedpoint_is_neg(left));
-    //printf("hit sub 'A'\n");
     sum = fixedpoint_sub(right, left);
   }
   else {
@@ -263,8 +179,6 @@ Fixedpoint fixedpoint_add(Fixedpoint left, Fixedpoint right) {
   }
 
   sum = positive_zero(sum);
-
-  //assert(0);
   return sum;
 }
 
@@ -295,19 +209,14 @@ Fixedpoint fixedpoint_sub(Fixedpoint left, Fixedpoint right) {
   assert(fixedpoint_is_valid(left) && fixedpoint_is_valid(right));
 
   Fixedpoint diff;
-  //printf("hit sub\n");
-
-  //printf("%d == %d\n", fixedpoint_is_neg(left), fixedpoint_is_neg(right));
 
   if (fixedpoint_is_neg(left)  == fixedpoint_is_neg(right)){
     
     if (fixedpoint_mag_greater_than(right, left)){
-      //printf("mag greater check\n");
       diff = fixedpoint_sub(right, left);
       diff = fixedpoint_negate(diff);
     }
     else {
-      //printf("hit sub +/-\n");
 
       // Check if + or -
       if (fixedpoint_is_neg(left)){
@@ -325,11 +234,7 @@ Fixedpoint fixedpoint_sub(Fixedpoint left, Fixedpoint right) {
       if (pass_through_zero(diff.f, left.f, right.f)) {
         diff.w -= 1;
       }
-      /*
-      // check if fixedpoint negated
-      if (pass_through_zero(diff.w, left.w, right.w)){
-        diff = fixedpoint_negate(diff);
-      }*/
+
     }
   }
 
@@ -379,12 +284,12 @@ Fixedpoint fixedpoint_negate(Fixedpoint val) {
 //Part of MS2
 Fixedpoint fixedpoint_halve(Fixedpoint val) {
   assert(fixedpoint_is_valid(val));
-  if (val.f % 2 = 1){
+  if (val.f % 2 == 1){
     return to_underflow(val);
   }
   val.f = val.f >> 1;
-  if (val.w % 2 = 1){
-    val.f += (1 << 63);
+  if (val.w % 2 == 1){
+    val.f += (((uint64_t)1) << 63);
   }
   val.w = val.w >> 1;
   return val;
@@ -403,16 +308,15 @@ Fixedpoint to_underflow(Fixedpoint val){
 //Part of MS2
 Fixedpoint fixedpoint_double(Fixedpoint val) {
   assert(fixedpoint_is_valid(val));
-  if (val.w >= (1 << 63)){
+  if (val.w >= (((uint64_t)1) << 63)){
     return to_overflow(val);
   }
   val.w = val.w << 1;
-  if (val.f >= (1 << 63)){
+  if (val.f >= (((uint64_t)1) << 63)){
     val.w += 1;
   }
   val.f = val.f << 1;
   return val;
-}
 }
 
 Fixedpoint to_overflow(Fixedpoint val){
@@ -427,7 +331,7 @@ Fixedpoint to_overflow(Fixedpoint val){
 
 //Part of MS2
 int fixedpoint_compare(Fixedpoint left, Fixedpoint right) {
-  assert(fixedpoint_is_valid(val));
+  assert(fixedpoint_is_valid(left) && fixedpoint_is_valid(right));
   if (fixedpoint_is_neg(left) && !fixedpoint_is_neg(right)){
     return -1;
   }
@@ -545,11 +449,8 @@ char *fixedpoint_format_as_hex(Fixedpoint val) {
   assert(fixedpoint_is_valid(val));
   char *s = malloc(35);
 
-  //printf("malloced\n");
-
   char num[34];
   
-  //printf("initalized\n");
   if (val.f == 0){
     sprintf(num, "%lx", val.w);
   }
@@ -557,7 +458,6 @@ char *fixedpoint_format_as_hex(Fixedpoint val) {
     sprintf(num, "%lx.%016lx", val.w, val.f);
     remove_trailing_zeros(num);
   }
-  //printf("numbered\n");
 
   if (fixedpoint_is_neg(val)){
     sprintf(s, "-%s", num);
@@ -565,10 +465,7 @@ char *fixedpoint_format_as_hex(Fixedpoint val) {
   else {
     sprintf(s, "%s", num);;
   }
-  
-  
-  
-  //printf("%s", s);
+
   return s;
 
 }
@@ -579,7 +476,6 @@ void remove_trailing_zeros(char *hexString){
     i--;
   }
   hexString[i+1] = '\0';
-  //printf("Tn Test: %d %s\n", i, hexString);
 }
 
 Fixedpoint positive_zero(Fixedpoint val){
