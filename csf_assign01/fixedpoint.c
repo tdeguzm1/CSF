@@ -65,10 +65,66 @@ void setLast4bits(uint64_t* num, char letter){
     *num += (letter - 48);
     }
  }
-	
+
+int validChar(Fixedpoint *val, char ch, int count){
+  if (count > 16);
+  else if (isdigit(ch) || (ch >= 'a' && ch <= 'f')){
+    return 1;
+  }
+  val->tag = '/';
+  return 0;
+}
     
 //Part of MS2
 Fixedpoint fixedpoint_create_from_hex(const char *hex) {
+  /*Fixedpoint num; //bad way
+  num.w = 0;
+  num.f = 0;
+
+  int len = strlen(hex);
+  int start = 0;
+
+  if (hex[0] == '-'){
+    num.tag = '-';
+    start = 1;
+    len--;
+  }
+  else {
+    num.tag = '+';
+  }
+
+  char *decimal = strchr(hex, '.');
+  char whole[16];
+  if (decimal != NULL) {
+    if (decimal-&hex[start] > 16){
+      num.tag = '/';
+      return num;
+    }
+    strncpy(whole, &hex[start], len);
+    char *remainder;
+    num.w = strtoul(whole, &remainder, 16);
+    if (strlen(remainder) > 17){
+      num.tag = '/';
+      return num;
+    }
+    char frac[16];
+    strncpy(frac, &remainder[1], strlen(remainder)-1);
+    num.f = strtoul(frac, &remainder, 16);
+    num.f = num.f << (16 - (strlen(frac))-1) * 4;
+  }
+  else {
+    if (len > 16){
+      num.tag = '/';
+      return num;
+    }
+    strncpy(whole, &hex[start], len);
+    char *remainder;
+    num.w = strtoul(whole, &remainder, 16);
+  }
+
+  return num;*/
+
+  
   // TODO: implement
   Fixedpoint num;
   num.w = 0;
@@ -80,34 +136,43 @@ Fixedpoint fixedpoint_create_from_hex(const char *hex) {
     num.tag = '-';
     start = 1;
   }
-  else {
+  else if (validChar(&num, hex[0], 1)){
     num.tag = '+';
   }
     
-  uint64_t count = start;
-  while (count < len && hex[count] != '.'){
+  //uint64_t count = start;
+  char *decimal = strchr(hex, '.');
+  /*if (decimal == NULL){
+    decimal = &hex[strlen(hex)];
+  }*/
+  //printf("reached here happy");
+  //while (count < len && hex[count] != '.'){
+  for (int i = 0; &hex[i+start] != decimal && i+start < len; i++){
     /*if (!(isdigit(hex[count]) && hex[count] >= 'a' && hex[count] <= 'f')){
       num.tag = '/';
       printf("sad whole error");
       return num;
     }*/
-    setLast4bits(&num.w, hex[count]);
-    count++;
+    validChar(&num, hex[i+start], i+1);
+    setLast4bits(&num.w, hex[i+start]);
+    //count++;
   }
 
-  count++;
-  uint64_t fracPlaces = 0;
-  while (count < len){
-    /*if (!(isdigit(hex[count]) && hex[count] >= 'a' && hex[count] <= 'f')){
-      num.tag = '/';
-      printf("sad frac error");
-      return num;
-    }*/
-    setLast4bits(&num.f, hex[count]);
-    count++;
-    fracPlaces++;
+  //count++;
+  if (decimal != NULL){
+    int i;
+    for (i = 1; &hex[strlen(hex)] != &decimal[i]; i++){
+      /*if (!(isdigit(hex[count]) && hex[count] >= 'a' && hex[count] <= 'f')){
+        num.tag = '/';
+        printf("sad frac error");
+        return num;
+      }*/
+      validChar(&num, decimal[i], i);
+      setLast4bits(&num.f, decimal[i]);
+      //count++;
+    }
+    num.f = num.f << ((16-(i-1))*4);
   }
-  num.f = num.f << ((16-fracPlaces)*4);
   /*if (count > 33) {
     num.tag = '/';
     printf("total count error");
@@ -174,12 +239,13 @@ Fixedpoint fixedpoint_add(Fixedpoint left, Fixedpoint right) {
 
     // check if fixedpoint whole overflowed
     if (is_in_overflow(sum.w, left.w, right.w)){
-      if (sum.tag == '+') {
-	sum.tag = 'O';
+      sum = to_overflow(sum);
+      /*if (sum.tag == '+') {
+	      sum.tag = 'O';
       }
       else if (sum.tag == '-') {
         sum.tag = 'o';
-      }
+      }*/
     }
   }
 
@@ -312,20 +378,94 @@ Fixedpoint fixedpoint_negate(Fixedpoint val) {
 
 //Part of MS2
 Fixedpoint fixedpoint_halve(Fixedpoint val) {
-  assert(0);
-  return DUMMY;
+  assert(fixedpoint_is_valid(val));
+  if (val.f % 2 = 1){
+    return to_underflow(val);
+  }
+  val.f = val.f >> 1;
+  if (val.w % 2 = 1){
+    val.f += (1 << 63);
+  }
+  val.w = val.w >> 1;
+  return val;
+}
+
+Fixedpoint to_underflow(Fixedpoint val){
+  if (fixedpoint_is_neg(val)){
+    val.tag = 'u';
+  }
+  else {
+    val.tag = 'U';
+  }
+  return val;
 }
 
 //Part of MS2
 Fixedpoint fixedpoint_double(Fixedpoint val) {
-  assert(0);
-  return DUMMY;
+  assert(fixedpoint_is_valid(val));
+  if (val.w >= (1 << 63)){
+    return to_overflow(val);
+  }
+  val.w = val.w << 1;
+  if (val.f >= (1 << 63)){
+    val.w += 1;
+  }
+  val.f = val.f << 1;
+  return val;
+}
+}
+
+Fixedpoint to_overflow(Fixedpoint val){
+  if (fixedpoint_is_neg(val)){
+    val.tag = 'o';
+  }
+  else {
+    val.tag = 'O';
+  }
+  return val;
 }
 
 //Part of MS2
 int fixedpoint_compare(Fixedpoint left, Fixedpoint right) {
-  assert(0);
-  return 0;
+  assert(fixedpoint_is_valid(val));
+  if (fixedpoint_is_neg(left) && !fixedpoint_is_neg(right)){
+    return -1;
+  }
+  else if (fixedpoint_is_neg(right) && !fixedpoint_is_neg(left)){
+    return 1;
+  }
+  else if (right.w == left.w && left.f == right.f){
+    return 0;
+  }
+  else if (!fixedpoint_is_neg(right) && !fixedpoint_is_neg(left)){
+    if (left.w > right.w){
+      return 1;
+    }
+    else if (left.w < right.w){
+      return -1;
+    }
+    else {
+      if (left.f > right.f){
+        return 1;
+      }
+      return -1;
+    }
+  }
+  else if (fixedpoint_is_neg(right) && fixedpoint_is_neg(left)){
+    if (left.w < right.w){
+      return 1;
+    }
+    else if (left.w > right.w){
+      return -1;
+    }
+    else {
+      if (left.f < right.f){
+        return 1;
+      }
+      return -1;
+    }
+  }
+  return -2;
 }
 
 // Determine whether a Fixedpoint value is equal to 0.

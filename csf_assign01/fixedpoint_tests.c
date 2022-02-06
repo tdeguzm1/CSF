@@ -117,6 +117,11 @@ void test_create_from_hex(TestObjs *objs) {
 
   //printf("%ld", fixedpoint_whole_part(val1));
   
+  /*char *s;
+  s = fixedpoint_format_as_hex(val1);
+  printf("%s\n", s);
+  free(s);*/
+  
   ASSERT(0xf6a5865UL == fixedpoint_whole_part(val1));
 
   ASSERT(0x00f2000000000000UL == fixedpoint_frac_part(val1));

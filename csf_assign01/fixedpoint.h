@@ -273,5 +273,6 @@ void setLast4bits(uint64_t* num, char letter);
 void remove_trailing_zeros(char *hexString);
 Fixedpoint positive_zero(Fixedpoint val);
 int fixedpoint_mag_greater_than(Fixedpoint left, Fixedpoint right);
+int validChar(Fixedpoint *val, char ch, int count);
 
 #endif // FIXEDPREC_H
