@@ -50,11 +50,12 @@ Fixedpoint fixedpoint_create2(uint64_t whole, uint64_t frac) {
   num.tag = '+';
   assert(num.w == whole);
   assert(num.f == frac);
-  assert(num.tag == '+');return num;
+  assert(num.tag == '+');
+  return num;
 }
 
 
-/*Helper for MS2
+//Helper for MS2
 void setLast4bits(uint64_t* num, char letter){
   *num = *num << 4;
   if (isalpha(letter)){
@@ -63,12 +64,11 @@ void setLast4bits(uint64_t* num, char letter){
   else {
     *num += (letter - 48);
     }
- }*/
+ }
 	
     
 //Part of MS2
 Fixedpoint fixedpoint_create_from_hex(const char *hex) {
-  /*
   // TODO: implement
   Fixedpoint num;
   num.w = 0;
@@ -100,8 +100,7 @@ Fixedpoint fixedpoint_create_from_hex(const char *hex) {
   
   
   // assert(0);
-  return num;*/
-  return DUMMY;
+  return num;
 }
 
 
@@ -134,7 +133,6 @@ uint64_t fixedpoint_frac_part(Fixedpoint val) {
 
 //Part of MS2
 Fixedpoint fixedpoint_add(Fixedpoint left, Fixedpoint right) {
-  /*
   // TODO: implement
   if (!fixedpoint_is_valid(left) || !fixedpoint_is_valid(right)){
     return DUMMY;
@@ -183,11 +181,10 @@ Fixedpoint fixedpoint_add(Fixedpoint left, Fixedpoint right) {
   }
 
   //assert(0);
-  return sum;*/
-  return DUMMY;
+  return sum;
 }
 
-/* Helper funcitons for MS2
+// Helper funcitons for MS2
 char is_in_overflow(uint64_t sum, uint64_t num1, uint64_t num2){
   if (sum < num1 || sum < num2){
     return 1;
@@ -200,11 +197,10 @@ char pass_through_zero(uint64_t diff, uint64_t num1, uint64_t num2){
     return 1;
   }
   return 0;
-  }*/
+  }
 
 //Part of MS2
 Fixedpoint fixedpoint_sub(Fixedpoint left, Fixedpoint right) {
-  /*
   if (!fixedpoint_is_valid(left) || !fixedpoint_is_valid(right)){
     return DUMMY;
   } // check that this is handled correctly
@@ -246,8 +242,7 @@ Fixedpoint fixedpoint_sub(Fixedpoint left, Fixedpoint right) {
     diff = fixedpoint_sub(left, right);
   }
     
-  return diff;*/
-  return DUMMY;
+  return diff;
 }
 
 //Part of MS2
@@ -275,8 +270,7 @@ Fixedpoint fixedpoint_negate(Fixedpoint val) {
       val.tag = '/';
       break;
   }
-
-
+  val = positive_zero(val);
   return val;
 }
 
@@ -371,9 +365,51 @@ int fixedpoint_is_valid(Fixedpoint val) {
 
 //Part of MS2
 char *fixedpoint_format_as_hex(Fixedpoint val) {
-  assert(0);
-  char *s = malloc(20);
-  strcpy(s, "<invalid>");
+  
+  assert(fixedpoint_is_valid(val));
+  char *s = malloc(35);
+
+  //printf("malloced\n");
+
+  char num[34];
+  
+  //printf("initalized\n");
+  if (val.f == 0){
+    sprintf(num, "%lx", val.w);
+  }
+  else {
+    sprintf(num, "%lx.%016lx", val.w, val.f);
+    remove_trailing_zeros(num);
+  }
+  //printf("numbered\n");
+
+  if (fixedpoint_is_neg(val)){
+    sprintf(s, "-%s", num);
+  }
+  else {
+    sprintf(s, "%s", num);;
+  }
+  
+  
+  
+  //printf("%s", s);
   return s;
+
+}
+
+void remove_trailing_zeros(char *hexString){
+  int i = strlen(hexString) - 1 ;
+  while (hexString[i] == '0'){
+    i--;
+  }
+  hexString[i+1] = '\0';
+  //printf("Tn Test: %d %s\n", i, hexString);
+}
+
+Fixedpoint positive_zero(Fixedpoint val){
+  if (val.tag == '-' && fixedpoint_is_zero(val)){
+    val.tag = '+';
+  }
+  return val;
 }
 

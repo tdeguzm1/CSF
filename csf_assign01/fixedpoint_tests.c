@@ -52,13 +52,13 @@ int main(int argc, char **argv) {
 
   TEST(test_whole_part);
   TEST(test_frac_part);
-  //TEST(test_create_from_hex);
-  //TEST(test_format_as_hex);
-  //TEST(test_negate);
-  //TEST(test_add);
-  //TEST(test_sub);
-  //TEST(test_is_overflow_pos);
-  //TEST(test_is_err);
+  TEST(test_create_from_hex);
+  TEST(test_format_as_hex);
+  TEST(test_negate);
+  TEST(test_add);
+  TEST(test_sub);
+  TEST(test_is_overflow_pos);
+  TEST(test_is_err);
 
   // IMPORTANT: if you add additional test functions (which you should!),
   // make sure they are included here.  E.g., if you add a test function
@@ -68,7 +68,6 @@ int main(int argc, char **argv) {
   //
   // here. This ensures that your test function will actually be executed.
 
-  //cleanup(objs);
   TEST_FINI();
 }
 
@@ -116,7 +115,7 @@ void test_create_from_hex(TestObjs *objs) {
 
   ASSERT(fixedpoint_is_valid(val1));
 
-  //printf("%d", fixedpoint_whole_part(val1));
+  //printf("%ld", fixedpoint_whole_part(val1));
   
   ASSERT(0xf6a5865UL == fixedpoint_whole_part(val1));
 
@@ -127,6 +126,7 @@ void test_format_as_hex(TestObjs *objs) {
   char *s;
 
   s = fixedpoint_format_as_hex(objs->zero);
+  //printf("%s", s);
   ASSERT(0 == strcmp(s, "0"));
   free(s);
 
