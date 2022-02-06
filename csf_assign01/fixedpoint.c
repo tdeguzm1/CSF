@@ -74,6 +74,7 @@ Fixedpoint fixedpoint_create_from_hex(const char *hex) {
   num.w = 0;
   num.f = 0;
   uint64_t len = strlen(hex);
+  
   uint64_t start = 0;
   if (hex[0] == '-'){
     num.tag = '-';
@@ -85,6 +86,11 @@ Fixedpoint fixedpoint_create_from_hex(const char *hex) {
     
   uint64_t count = start;
   while (count < len && hex[count] != '.'){
+    /*if (!(isdigit(hex[count]) && hex[count] >= 'a' && hex[count] <= 'f')){
+      num.tag = '/';
+      printf("sad whole error");
+      return num;
+    }*/
     setLast4bits(&num.w, hex[count]);
     count++;
   }
@@ -92,11 +98,20 @@ Fixedpoint fixedpoint_create_from_hex(const char *hex) {
   count++;
   uint64_t fracPlaces = 0;
   while (count < len){
+    /*if (!(isdigit(hex[count]) && hex[count] >= 'a' && hex[count] <= 'f')){
+      num.tag = '/';
+      printf("sad frac error");
+      return num;
+    }*/
     setLast4bits(&num.f, hex[count]);
     count++;
     fracPlaces++;
   }
   num.f = num.f << ((16-fracPlaces)*4);
+  /*if (count > 33) {
+    num.tag = '/';
+    printf("total count error");
+  }*/
   
   
   // assert(0);
@@ -134,14 +149,11 @@ uint64_t fixedpoint_frac_part(Fixedpoint val) {
 //Part of MS2
 Fixedpoint fixedpoint_add(Fixedpoint left, Fixedpoint right) {
   // TODO: implement
-  if (!fixedpoint_is_valid(left) || !fixedpoint_is_valid(right)){
-    return DUMMY;
-  } // check that this is handled correctly
-
+  assert(fixedpoint_is_valid(left) && fixedpoint_is_valid(right));
 
   Fixedpoint sum;
 
-  if (fixedpoint_is_neg(left)  == fixedpoint_is_neg(right)){ 
+  if (fixedpoint_is_neg(left) == fixedpoint_is_neg(right)){ 
 
     // Check if + or -
     if (fixedpoint_is_neg(left)){
@@ -160,7 +172,7 @@ Fixedpoint fixedpoint_add(Fixedpoint left, Fixedpoint right) {
       sum.w += 1;
     }
 
-    // check if fixedpoint overflowed
+    // check if fixedpoint whole overflowed
     if (is_in_overflow(sum.w, left.w, right.w)){
       if (sum.tag == '+') {
 	sum.tag = 'O';
@@ -172,13 +184,19 @@ Fixedpoint fixedpoint_add(Fixedpoint left, Fixedpoint right) {
   }
 
   else if (fixedpoint_is_neg(left)){
-    fixedpoint_negate(left);
-    sum = fixedpoint_sub(right,left);
+    //printf("In add before negate: %d\n", fixedpoint_is_neg(left));
+
+    left = fixedpoint_negate(left);
+    //printf("In add after negate: %d\n", fixedpoint_is_neg(left));
+    //printf("hit sub 'A'\n");
+    sum = fixedpoint_sub(right, left);
   }
   else {
-    fixedpoint_negate(right);
+    right = fixedpoint_negate(right);
     sum = fixedpoint_sub(left, right);
   }
+
+  sum = positive_zero(sum);
 
   //assert(0);
   return sum;
@@ -193,57 +211,75 @@ char is_in_overflow(uint64_t sum, uint64_t num1, uint64_t num2){
 }
 
 char pass_through_zero(uint64_t diff, uint64_t num1, uint64_t num2){
-  if (diff > num1 || diff > num2){
+  if (diff > num1 && diff > num2){
     return 1;
   }
   return 0;
+}
+
+int fixedpoint_mag_greater_than(Fixedpoint left, Fixedpoint right) {
+  if ((left.w > right.w)  || ((left.w == right.w) && (left.f > right.f))){
+    return 1;
   }
+  return 0;
+}
 
 //Part of MS2
 Fixedpoint fixedpoint_sub(Fixedpoint left, Fixedpoint right) {
-  if (!fixedpoint_is_valid(left) || !fixedpoint_is_valid(right)){
-    return DUMMY;
-  } // check that this is handled correctly
-
+  assert(fixedpoint_is_valid(left) && fixedpoint_is_valid(right));
 
   Fixedpoint diff;
+  //printf("hit sub\n");
+
+  //printf("%d == %d\n", fixedpoint_is_neg(left), fixedpoint_is_neg(right));
 
   if (fixedpoint_is_neg(left)  == fixedpoint_is_neg(right)){
-
-    // Check if + or -
-    if (fixedpoint_is_neg(left)){
-      diff.tag = '-';
+    
+    if (fixedpoint_mag_greater_than(right, left)){
+      //printf("mag greater check\n");
+      diff = fixedpoint_sub(right, left);
+      diff = fixedpoint_negate(diff);
     }
     else {
-      diff.tag = '+';
-    }
+      //printf("hit sub +/-\n");
 
-    // add parts together
-    diff.w = left.w - right.w;
-    diff.f = left.f - right.f;
+      // Check if + or -
+      if (fixedpoint_is_neg(left)){
+        diff.tag = '-';
+      }
+      else {
+        diff.tag = '+';
+      }
 
-    // check if fractional part requires borrowing
-    if (pass_through_zero(diff.f, left.f, right.f)) {
-      diff.w -= 1;
-    }
+      // add parts together
+      diff.w = left.w - right.w;
+      diff.f = left.f - right.f;
 
-    // check if fixedpoint negated
-    if (pass_through_zero(diff.w, left.w, right.w)){
-      fixedpoint_negate(diff);
+      // check if fractional part requires borrowing
+      if (pass_through_zero(diff.f, left.f, right.f)) {
+        diff.w -= 1;
+      }
+      /*
+      // check if fixedpoint negated
+      if (pass_through_zero(diff.w, left.w, right.w)){
+        diff = fixedpoint_negate(diff);
+      }*/
     }
   }
 
   else if (fixedpoint_is_neg(left)){
-    fixedpoint_negate(left);
+    right = fixedpoint_negate(right);
     diff = fixedpoint_add(right, left);
   }
   else {
-    fixedpoint_negate(right);
-    diff = fixedpoint_sub(left, right);
+    right = fixedpoint_negate(right);
+    diff = fixedpoint_add(left, right);
   }
     
   return diff;
 }
+
+
 
 //Part of MS2
 Fixedpoint fixedpoint_negate(Fixedpoint val) {

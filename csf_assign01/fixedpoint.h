@@ -272,5 +272,6 @@ char pass_through_zero(uint64_t diff, uint64_t num1, uint64_t num2);
 void setLast4bits(uint64_t* num, char letter);
 void remove_trailing_zeros(char *hexString);
 Fixedpoint positive_zero(Fixedpoint val);
+int fixedpoint_mag_greater_than(Fixedpoint left, Fixedpoint right);
 
 #endif // FIXEDPREC_H
