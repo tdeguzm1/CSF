@@ -190,13 +190,6 @@ char is_in_overflow(uint64_t sum, uint64_t num1, uint64_t num2){
   return 0;
 }
 
-char pass_through_zero(uint64_t diff, uint64_t num1, uint64_t num2){
-  if (diff > num1 && diff > num2){
-    return 1;
-  }
-  return 0;
-}
-
 int fixedpoint_mag_greater_than(Fixedpoint left, Fixedpoint right) {
   if ((left.w > right.w)  || ((left.w == right.w) && (left.f > right.f))){
     return 1;
@@ -229,10 +222,12 @@ Fixedpoint fixedpoint_sub(Fixedpoint left, Fixedpoint right) {
       // add parts together
       diff.w = left.w - right.w;
       diff.f = left.f - right.f;
+      //printf("next check if borrow");
 
       // check if fractional part requires borrowing
-      if (pass_through_zero(diff.f, left.f, right.f)) {
+      if (right.f > left.f) {
         diff.w -= 1;
+        //printf("borrow occurred\n");
       }
 
     }

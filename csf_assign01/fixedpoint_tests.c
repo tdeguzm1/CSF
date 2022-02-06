@@ -206,15 +206,39 @@ void test_add(TestObjs *objs) {
   lhs = fixedpoint_create_from_hex("-c7252a193ae07.7a51de9ea0538c5");
   rhs = fixedpoint_create_from_hex("d09079.1e6d601");
   sum = fixedpoint_add(lhs, rhs);
+
+  ASSERT(fixedpoint_is_neg(sum));
+  ASSERT(0xc7252a0c31d8eUL == fixedpoint_whole_part(sum));
+  ASSERT(0x5be47e8ea0538c50UL == fixedpoint_frac_part(sum));
+
+
+
+  lhs = fixedpoint_create_from_hex("934.ade8d38a");
+  rhs = fixedpoint_create_from_hex("-edef814.21f023189");
+  sum = fixedpoint_add(lhs, rhs);
+  ASSERT(fixedpoint_is_neg(sum));
   
   /*char *s;
   s = fixedpoint_format_as_hex(sum);
   printf("%s\n", s);
   free(s);*/
 
+  ASSERT(0xedeeedfUL == fixedpoint_whole_part(sum));
+  ASSERT(0x74074f8e90000000UL == fixedpoint_frac_part(sum));
+
+  lhs = fixedpoint_create_from_hex("8bd.0e34492025065");
+  rhs = fixedpoint_create_from_hex("5d7b061d6.034f5d");
+  sum = fixedpoint_add(lhs, rhs);
+  ASSERT(!fixedpoint_is_neg(sum));
+  ASSERT(0x5d7b06a93UL == fixedpoint_whole_part(sum));
+  ASSERT(0x1183a62025065000UL == fixedpoint_frac_part(sum));
+
+  lhs = fixedpoint_create_from_hex("-8a6a9f92d72.82a9b99ad4e76");
+  rhs = fixedpoint_create_from_hex("-8a93a62c25996.e09875");
+  sum = fixedpoint_add(lhs, rhs);
   ASSERT(fixedpoint_is_neg(sum));
-  ASSERT(0xc7252a0c31d8eUL == fixedpoint_whole_part(sum));
-  ASSERT(0x5be47e8ea0538c50UL == fixedpoint_frac_part(sum));
+  ASSERT(0x8b1e10cbb8709UL == fixedpoint_whole_part(sum));
+  ASSERT(0x63422e9ad4e76000UL == fixedpoint_frac_part(sum));
 }
 
 void test_sub(TestObjs *objs) {
