@@ -268,6 +268,7 @@ int fixedpoint_is_valid(Fixedpoint val);
 char *fixedpoint_format_as_hex(Fixedpoint val);
 
 char is_in_overflow(uint64_t sum, uint64_t num1, uint64_t num2);
+char fixedpoint_is_in_overflow(Fixedpoint sum, Fixedpoint num1, Fixedpoint num2);
 void setLast4bits(uint64_t* num, char letter);
 void remove_trailing_zeros(char *hexString);
 Fixedpoint positive_zero(Fixedpoint val);

@@ -59,6 +59,7 @@ Fixedpoint fixedpoint_create2(uint64_t whole, uint64_t frac) {
 void setLast4bits(uint64_t* num, char letter){
   *num = *num << 4;
   if (isalpha(letter)){
+    letter = tolower(letter);
     *num += (letter - 87);
   }
   else {
@@ -68,7 +69,10 @@ void setLast4bits(uint64_t* num, char letter){
 
 int validChar(Fixedpoint *val, char ch, int count){
   if (count > 16);
-  else if (isdigit(ch) || (ch >= 'a' && ch <= 'f')){
+  else if (ch == '.' && val->w == 0){
+    return 1;
+  }
+  else if (isdigit(ch) || (isalpha(ch) && (tolower(ch) >= 'a' && tolower(ch) <= 'f'))){
     return 1;
   }
   val->tag = '/';
@@ -80,9 +84,9 @@ Fixedpoint fixedpoint_create_from_hex(const char *hex) {
   Fixedpoint num;
   num.w = 0;
   num.f = 0;
-  uint64_t len = strlen(hex);
+  size_t len = strlen(hex);
   
-  uint64_t start = 0;
+  size_t start = 0;
   if (hex[0] == '-'){
     num.tag = '-';
     start = 1;
@@ -90,22 +94,19 @@ Fixedpoint fixedpoint_create_from_hex(const char *hex) {
   else if (validChar(&num, hex[0], 1)){
     num.tag = '+';
   }
-
-  char *decimal = strchr(hex, '.');
-  for (int i = 0; &hex[i+start] != decimal && i+start < len; i++){
+  size_t i;
+  for (i = 0; i+start < len && hex[i+start] != '.'; i++){
     validChar(&num, hex[i+start], i+1);
     setLast4bits(&num.w, hex[i+start]);
   }
-
-  //count++;
-  if (decimal != NULL){
-    int i;
-    for (i = 1; &hex[strlen(hex)] != &decimal[i]; i++){
-      validChar(&num, decimal[i], i);
-      setLast4bits(&num.f, decimal[i]);
-    }
-    num.f = num.f << ((16-(i-1))*4);
+  size_t j;
+  for (j = 1; i+j+start < len; j++){
+    validChar(&num, hex[i+j+start], j);
+    setLast4bits(&num.f, hex[j+i+start]);
   }
+  num.f = num.f << ((16-(j-1))*4);
+  
+  num = positive_zero(num);
   return num;
 }
 
@@ -162,8 +163,8 @@ Fixedpoint fixedpoint_add(Fixedpoint left, Fixedpoint right) {
       sum.w += 1;
     }
 
-    // check if fixedpoint whole overflowed
-    if (is_in_overflow(sum.w, left.w, right.w)){
+    // check if whole fixedpoint overflowed
+    if (fixedpoint_is_in_overflow(sum, left, right)){
       sum = to_overflow(sum);
     }
   }
@@ -185,6 +186,17 @@ Fixedpoint fixedpoint_add(Fixedpoint left, Fixedpoint right) {
 // Helper funcitons for MS2
 char is_in_overflow(uint64_t sum, uint64_t num1, uint64_t num2){
   if (sum < num1 || sum < num2){
+    return 1;
+  }
+  return 0;
+}
+
+// Helper funcitons for MS2
+char fixedpoint_is_in_overflow(Fixedpoint sum, Fixedpoint num1, Fixedpoint num2){
+  if (is_in_overflow(sum.w, num1.w, num2.w)){
+    return 1;
+  }
+  else if ((sum.w == num1.w && sum.f < num1.f) || (sum.w == num2.w && sum.f < num2.f)){
     return 1;
   }
   return 0;
@@ -222,12 +234,10 @@ Fixedpoint fixedpoint_sub(Fixedpoint left, Fixedpoint right) {
       // add parts together
       diff.w = left.w - right.w;
       diff.f = left.f - right.f;
-      //printf("next check if borrow");
-
+      
       // check if fractional part requires borrowing
       if (right.f > left.f) {
         diff.w -= 1;
-        //printf("borrow occurred\n");
       }
 
     }
