@@ -12,8 +12,6 @@
 #include <assert.h>
 #include "fixedpoint.h"
 
-// You can remove this once all of the functions are fully implemented
-//static Fixedpoint DUMMY;
 
 /*
  * Create a fixedpoint value representing an integer
@@ -30,7 +28,7 @@ Fixedpoint fixedpoint_create(uint64_t whole) {
   num.f = 0;
   num.tag = '+';
   return num;
-}
+} // 5 lines
 
 
 // Create a Fixedpoint value from specified whole and fractional values
@@ -48,44 +46,79 @@ Fixedpoint fixedpoint_create2(uint64_t whole, uint64_t frac) {
   num.w = whole;
   num.f = frac;
   num.tag = '+';
-  assert(num.w == whole);
-  assert(num.f == frac);
-  assert(num.tag == '+');
   return num;
-}
+} // 5 lines
 
 
-//Helper for MS2
+// Updates final four bits of number, shifting the others left
+// based on given hexidecimal char - called by create_from_hex
+//
+// Parameters:
+//   *num - pointer to uint64_t value
+//   letter - letter being added
+//
 void setLast4bits(uint64_t* num, char letter){
-  *num = *num << 4;
+  *num = *num << 4; // shift 4 bits left
+  
   if (isalpha(letter)){
     letter = tolower(letter);
-    *num += (letter - 87);
+    *num += (letter - 87); // add hex value if letter 
   }
   else {
-    *num += (letter - 48);
+    *num += (letter - 48); // add hex value if number
     }
- }
+ } // 6 lines
 
+
+
+// Check if the char being read is valid- called by create_from_hex
+//
+// Parameters:
+//   *val - pointer to fixedpoint being created
+//   ch - char being considered for validity
+//   count - the number of values aready checked for validity
+//
+// Returns:
+//   1 if valid
+//   0 if invalid
 int validChar(Fixedpoint *val, char ch, int count){
-  if (count > 16);
+  
+  if (count > 16); // more than 16 values read-> jump to error
+  
   else if (ch == '.' && val->w == 0){
-    return 1;
+    return 1; // valid, if the char is the first occurence of a decimal point
   }
   else if (isdigit(ch) || (isalpha(ch) && (tolower(ch) >= 'a' && tolower(ch) <= 'f'))){
-    return 1;
+    return 1; // valid, if the char is a digit or a letter (a-f) or (A-F)
   }
-  val->tag = '/';
+  
+  val->tag = '/'; // if in error, set fixedpoint to error state
   return 0;
-}
+} // 7 lines
     
-//Part of MS2
+
+
+// Create a Fixedpoint value from a string representation.
+// The string will have one of the following forms:
+//
+//    X
+//    -X
+//    X.Y
+//    -X.Y
+//
+// In all value strings, X and Y are sequences of 0 to 16 hex digits
+// (chosen from 0-9, a-f, A-F).
+//
+// Returns:
+//   if the string is valid, the Fixedpoint value;
+//   if the string is invalid, a Fixedpoint value for which
+//   fixedpoint_is_err returns true
 Fixedpoint fixedpoint_create_from_hex(const char *hex) {
   Fixedpoint num;
   num.w = 0;
   num.f = 0;
-  size_t len = strlen(hex);
   
+  // sets +/- designation
   size_t start = 0;
   if (hex[0] == '-'){
     num.tag = '-';
@@ -94,21 +127,26 @@ Fixedpoint fixedpoint_create_from_hex(const char *hex) {
   else if (validChar(&num, hex[0], 1)){
     num.tag = '+';
   }
+  
+  // sets num.w value until decimal or end of string is reached
   size_t i;
-  for (i = 0; i+start < len && hex[i+start] != '.'; i++){
+  for (i = 0; i+start < strlen(hex) && hex[i+start] != '.'; i++){
     validChar(&num, hex[i+start], i+1);
     setLast4bits(&num.w, hex[i+start]);
   }
+  
+  // sets num.f value until decimal or end of string is reached
   size_t j;
-  for (j = 1; i+j+start < len; j++){
+  for (j = 1; i+j+start < strlen(hex); j++){
     validChar(&num, hex[i+j+start], j);
     setLast4bits(&num.f, hex[j+i+start]);
   }
-  num.f = num.f << ((16-(j-1))*4);
+  num.f = num.f << ((16-(j-1))*4); // shift to account for trailing zeroes
   
-  num = positive_zero(num);
+  num = positive_zero(num); // checks for negative zero
   return num;
-}
+
+} // 20 lines
 
 
 // Get the whole part of the given Fixedpoint value.
@@ -119,10 +157,8 @@ Fixedpoint fixedpoint_create_from_hex(const char *hex) {
 // Returns:
 //   a uint64_t value which is the whole part of the Fixedpoint value
 uint64_t fixedpoint_whole_part(Fixedpoint val) {
-  uint64_t whole = val.w;
-  assert(whole == val.w);
-  return whole;
-}
+  return val.w;
+} // 1 line
 
 // Get the fractional part of the given Fixedpoint value.
 //
@@ -132,21 +168,32 @@ uint64_t fixedpoint_whole_part(Fixedpoint val) {
 // Returns:
 //   a uint64_t value which is the fractional part of the Fixedpoint value 
 uint64_t fixedpoint_frac_part(Fixedpoint val) {
-  uint64_t frac = val.f;
-  assert(frac == val.f);
-  return frac;
-}
+  return val.f;
+} // 1 line
 
 
-//Part of MS2
+// Compute the sum of two valid Fixedpoint values.
+//
+// Parameters: (assume valid fixedpoints are passed)
+//   left - the left Fixedpoint value
+//   right - the right Fixedpoint value
+//
+// Returns:
+//   if the sum left + right is in the range of values that can be represented
+//   exactly, the sum is returned;
+//   if the sum left + right is not in the range of values that can be
+//   represented, then a value for which either fixedpoint_is_overflow_pos or
+//   fixedpoint_is_overflow_neg returns true is returned (depending on whether
+//   the overflow was positive or negative)
 Fixedpoint fixedpoint_add(Fixedpoint left, Fixedpoint right) {
-  assert(fixedpoint_is_valid(left) && fixedpoint_is_valid(right));
+  assert(fixedpoint_is_valid(left) && fixedpoint_is_valid(right)); //check validity
 
   Fixedpoint sum;
 
+  // if the signs are the same
   if (fixedpoint_is_neg(left) == fixedpoint_is_neg(right)){ 
 
-    // Check if + or -
+    // Set sum to + or -
     if (fixedpoint_is_neg(left)){
       sum.tag = '-';
     }
@@ -168,62 +215,109 @@ Fixedpoint fixedpoint_add(Fixedpoint left, Fixedpoint right) {
       sum = to_overflow(sum);
     }
   }
-
+  
+  // if (-lhs) + (+rhs), call (+rhs) - (+lhs)
   else if (fixedpoint_is_neg(left)){
-
     left = fixedpoint_negate(left);
     sum = fixedpoint_sub(right, left);
   }
+
+  // if (lhs) + (-rhs), call (+lhs) - (+rhs)
   else {
     right = fixedpoint_negate(right);
     sum = fixedpoint_sub(left, right);
   }
 
-  sum = positive_zero(sum);
+  sum = positive_zero(sum); // check for negative zero
   return sum;
-}
+} // 21 lines
 
-// Helper funcitons for MS2
+
+// Check if two added uint64_t values are in overflow. Called by fixedpoint_add
+//
+// Parameters:
+//   sum - a final uint64_t value
+//   num1 & num2 - two original values
+//
+// Returns:
+//   1 if in overflow
+//   0 if not in overflow
 char is_in_overflow(uint64_t sum, uint64_t num1, uint64_t num2){
   if (sum < num1 || sum < num2){
     return 1;
   }
   return 0;
-}
+} // 3 lines
 
-// Helper funcitons for MS2
+// Check if two added fixedpoint values are in overflow. Called by fixedpoint_add
+//
+// Parameters:
+//   sum - a final fixedpoint value
+//   num1 & num2 - two original values
+//
+// Returns:
+//   1 if in overflow
+//   0 if not in overflow
 char fixedpoint_is_in_overflow(Fixedpoint sum, Fixedpoint num1, Fixedpoint num2){
   if (is_in_overflow(sum.w, num1.w, num2.w)){
-    return 1;
+    return 1; // if whole has overflowed
   }
   else if ((sum.w == num1.w && sum.f < num1.f) || (sum.w == num2.w && sum.f < num2.f)){
-    return 1;
+    return 1; // if one whole is equal, but overflowed fractionally
   }
   return 0;
-}
+} // 5 lines
 
+// Check if magnitude of one fixedpoint is larger than another.
+// Used in fixedpoint_subtract and fixedpoint_compare
+//
+// Parameters:
+//   left - main fixedpoint
+//   right - fixedpoint for comparison
+//
+// Returns:
+//   1 if left > right
+//   0 if left <= right
 int fixedpoint_mag_greater_than(Fixedpoint left, Fixedpoint right) {
   if ((left.w > right.w)  || ((left.w == right.w) && (left.f > right.f))){
     return 1;
   }
   return 0;
-}
+} // 3 lines
 
-//Part of MS2
+
+
+// Compute the difference of two valid Fixedpoint values.
+//
+// Parameters: (assume valid fixedpoint is passed)
+//   left - the left Fixedpoint value
+//   right - the right Fixedpoint value
+//
+// Returns:
+//   if the difference left - right is in the range of values that can be represented
+//   exactly, the difference is returned;
+//   if the difference left - right is not in the range of values that can be
+//   represented, then a value for which either fixedpoint_is_overflow_pos or
+//   fixedpoint_is_overflow_neg returns true is returned (depending on whether
+//   the overflow was positive or negative)
 Fixedpoint fixedpoint_sub(Fixedpoint left, Fixedpoint right) {
-  assert(fixedpoint_is_valid(left) && fixedpoint_is_valid(right));
+  assert(fixedpoint_is_valid(left) && fixedpoint_is_valid(right)); // checks fixedpoints are valid
 
   Fixedpoint diff;
-
+  
+  // if the fixedpoints' signs are the same
   if (fixedpoint_is_neg(left)  == fixedpoint_is_neg(right)){
     
+    // if |right| > |left|, change (left - right) to -(right - left)
     if (fixedpoint_mag_greater_than(right, left)){
       diff = fixedpoint_sub(right, left);
       diff = fixedpoint_negate(diff);
     }
+
+    // if |left| < |right|, subtract normally
     else {
 
-      // Check if + or -
+      // set +/-
       if (fixedpoint_is_neg(left)){
         diff.tag = '-';
       }
@@ -231,7 +325,7 @@ Fixedpoint fixedpoint_sub(Fixedpoint left, Fixedpoint right) {
         diff.tag = '+';
       }
 
-      // add parts together
+      // subtract parts
       diff.w = left.w - right.w;
       diff.f = left.f - right.f;
       
@@ -239,26 +333,37 @@ Fixedpoint fixedpoint_sub(Fixedpoint left, Fixedpoint right) {
       if (right.f > left.f) {
         diff.w -= 1;
       }
-
     }
   }
-
+  
+  // if (-lhs) - (+rhs), change to (-lhs) + (-rhs)
   else if (fixedpoint_is_neg(left)){
     right = fixedpoint_negate(right);
     diff = fixedpoint_add(right, left);
   }
+
+  // if (+lhs) - (-rhs), change to (+lhs) + (+rhs)
   else {
     right = fixedpoint_negate(right);
     diff = fixedpoint_add(left, right);
   }
     
   return diff;
-}
+} // 22 lines
 
 
 
-//Part of MS2
+// Negate a valid Fixedpoint value.  (I.e. a value with the same magnitude but
+// the opposite sign is returned.)  As a special case, the zero value is considered
+// to be its own negation.
+//
+// Parameters:
+//   val - a valid Fixedpoint value
+//
+// Returns:
+//   the negation of val
 Fixedpoint fixedpoint_negate(Fixedpoint val) {
+  ASSERT(fixedpoint_is_valid(val)); // checks fixedpoint is valid
   switch (val.tag){
     case '+':
       val.tag = '-';
@@ -266,40 +371,48 @@ Fixedpoint fixedpoint_negate(Fixedpoint val) {
     case '-':
       val.tag = '+';
       break;
-    case 'O':
-      val.tag = 'o';
-      break;
-    case 'o':
-      val.tag = 'O';
-      break;
-    case 'U':
-      val.tag = 'u';
-      break;
-    case 'u':
-      val.tag = 'U';
-      break;
     default:
       val.tag = '/';
       break;
   }
-  val = positive_zero(val);
+  val = positive_zero(val); // handles negative zero
   return val;
-}
+} // 13 lines
 
-//Part of MS2
+// Return a Fixedpoint value that is exactly 1/2 the value of the given one.
+//
+// Parameters:
+//   val - a valid Fixedpoint value
+//
+// Return:
+//   a Fixedpoint value exactly 1/2 of the given one, if it can be represented exactly;
+//   otherwise, a Fixedpoint value for which either fixedpoint_is_underflow_pos
+//   or fixedpoint_is_underflow_neg returns true (depending on whether the
+//   computed value would have been positive or negative)
 Fixedpoint fixedpoint_halve(Fixedpoint val) {
-  assert(fixedpoint_is_valid(val));
+  assert(fixedpoint_is_valid(val)); // checks fixedpoint is valid
+  
+  // if lowest bit of fraction is 1, underflow is triggered
   if (val.f % 2 == 1){
     return to_underflow(val);
   }
-  val.f = val.f >> 1;
-  if (val.w % 2 == 1){
-    val.f += (((uint64_t)1) << 63);
-  }
-  val.w = val.w >> 1;
-  return val;
-}
 
+  val.f = val.f >> 1; // shift fraction right
+  if (val.w % 2 == 1){
+    val.f += (((uint64_t)1) << 63); // add from whole part if necessary
+  }
+  val.w = val.w >> 1; // shift whole right
+  return val;
+} // 8 lines
+
+
+// Update a valid, recently-underflowed fixedpoint with appropriate signage.
+//
+// Parameters:
+//   val - an underflowed Fixedpoint value
+//
+// Return:
+//   an updated fixpoint value with +/- underflow tag
 Fixedpoint to_underflow(Fixedpoint val){
   if (fixedpoint_is_neg(val)){
     val.tag = 'u';
@@ -308,9 +421,18 @@ Fixedpoint to_underflow(Fixedpoint val){
     val.tag = 'U';
   }
   return val;
-}
+} // 5 lines
 
-//Part of MS2
+// Return a Fixedpoint value that is exactly twice the value of the given one.
+//
+// Parameters:
+//   val - a valid Fixedpoint value
+//
+// Return:
+//   a Fixedpoint value exactly twice the given one, if it can be represented exactly;
+//   otherwise, a Fixedpoint value for which either fixedpoint_is_overflow_pos
+//   or fixedpoint_is_overflow_neg returns true (depending on whether the
+//   computed value would have been positive or negative)
 Fixedpoint fixedpoint_double(Fixedpoint val) {
   assert(fixedpoint_is_valid(val));
   if (val.w >= (((uint64_t)1) << 63)){
