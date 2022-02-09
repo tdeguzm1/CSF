@@ -505,6 +505,11 @@ void test_add(TestObjs *objs) {
   ASSERT(0x46f2ed0acUL == fixedpoint_whole_part(sum));
   ASSERT(0x4a59cab4d2000000UL == fixedpoint_frac_part(sum));
 
+  // tests added: -1 + 1
+  sum = fixedpoint_add(objs->one, fixedpoint_negate(objs->one));
+  ASSERT(!fixedpoint_is_neg(sum)); // implicitly tests negative zero
+  ASSERT(fixedpoint_is_zero(sum)); // implicitly tests fixedpoint_is_zero
+
   // tests added: positive overflow -> moved to "test_is_overflow_pos"
   
   // tests added: negative overflow -> moved to "test_is_overflow_neg"

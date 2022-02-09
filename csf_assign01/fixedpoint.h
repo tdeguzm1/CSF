@@ -267,14 +267,91 @@ int fixedpoint_is_valid(Fixedpoint val);
 //   of the Fixedpoint value
 char *fixedpoint_format_as_hex(Fixedpoint val);
 
+// Check if two added uint64_t values are in overflow. Called by fixedpoint_add
+//
+// Parameters:
+//   sum - a final uint64_t value
+//   num1 & num2 - two original values
+//
+// Returns:
+//   1 if in overflow
+//   0 if not in overflow
 char is_in_overflow(uint64_t sum, uint64_t num1, uint64_t num2);
+
+// Check if two added fixedpoint values are in overflow. Called by fixedpoint_add
+//
+// Parameters:
+//   sum - a final fixedpoint value
+//   num1 & num2 - two original values
+//
+// Returns:
+//   1 if in overflow
+//   0 if not in overflow
 char fixedpoint_is_in_overflow(Fixedpoint sum, Fixedpoint num1, Fixedpoint num2);
+
+// Updates final four bits of number, shifting the others left
+// based on given hexidecimal char - called by create_from_hex
+//
+// Parameters:
+//   *num - pointer to uint64_t value
+//   letter - letter being added
 void setLast4bits(uint64_t* num, char letter);
+
+// Removes trailing zeroes from a hex string. Called by format as hex
+//
+// Parameters:
+//   *hexString - pointer to a hex string
 void remove_trailing_zeros(char *hexString);
+
+// Handles possibility of a positive zero.  Called anywhere a positive zero could happen
+//
+// Parameters:
+//   val - a fixedpoint value
+//
+// Returns:
+//  a fixedpoint that is a positive zero if val was a negative zero
 Fixedpoint positive_zero(Fixedpoint val);
+
+// Check if magnitude of one fixedpoint is larger than another.
+// Used in fixedpoint_subtract and fixedpoint_compare
+//
+// Parameters:
+//   left - main fixedpoint
+//   right - fixedpoint for comparison
+//
+// Returns:
+//   1 if left > right
+//   0 if left <= right
 int fixedpoint_mag_greater_than(Fixedpoint left, Fixedpoint right);
-int validChar(Fixedpoint *val, char ch, int count);
+
+// Check if the char being read is valid- called by create_from_hex
+//
+// Parameters:
+//   *val - pointer to fixedpoint being created
+//   ch - char being considered for validity
+//   count - the number of values aready checked for validity
+//
+// Returns:
+//   1 if valid
+//   0 if invalid
+int valid_char(Fixedpoint *val, char ch, int count);
+
+// Update a valid, recently-overflowed fixedpoint with appropriate signage.
+//
+// Parameters:
+//   val - an overflowed Fixedpoint value
+//
+// Return:
+//   an updated fixpoint value with +/- overflow tag
 Fixedpoint to_overflow(Fixedpoint val);
+
+// Update a valid, recently-underflowed fixedpoint with appropriate signage.
+//
+// Parameters:
+//   val - an underflowed Fixedpoint value
+//
+// Return:
+//   an updated fixpoint value with +/- underflow tag
 Fixedpoint to_underflow(Fixedpoint val);
 
 #endif // FIXEDPREC_H
