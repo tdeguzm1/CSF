@@ -1,7 +1,7 @@
 // C implementation of hexdump functions
 
 #include <unistd.h>  // this is the only system header file you may include!
-#include <stdio.h>
+//#include <stdio.h>
 #include "hexfuncs.h"
 
 // Read up to 16 bytes from standard input into data_buf.
@@ -9,7 +9,7 @@
 unsigned hex_read(char data_buf[]){
   unsigned count = 0;
   char c;
-  while (read(STDIN_FILENO, &c, 1) > 0 && count < 16) {
+  while (count < 16 && read(STDIN_FILENO, &c, 1) > 0) {
       data_buf[count] = c;
       //printf("read %c ", data_buf[count]);
       count++;
@@ -35,7 +35,7 @@ char to_hex(unsigned val) {
         return val + 48;
     }
     else {
-        return val + 55;
+        return val + 87;
     }
 }
 
