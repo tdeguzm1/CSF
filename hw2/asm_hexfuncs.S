@@ -11,7 +11,7 @@
 	  .globl hex_format_byte_as_hex
 	  .globl hex_to_printable
 	  .globl hex_format_offset
-	  .globl to_hex
+	  //.globl to_hex
     
 
 	/*void hex_format_byte_as_hex(unsigned char byteval, char sbuf[]){
@@ -19,6 +19,7 @@
   sbuf[1] = to_hex(byteval % 16);
   sbuf[2] = '\0';
 } */
+
 	hex_format_byte_as_hex: // recieves byteval in %edi/%dil , %rsi stores sbuf
 	  movq %rdi, %rax
 	  movq $0, %rdx
@@ -31,9 +32,29 @@
 	  movb %dl, (%rsi)
 	  movb $0, 2(%rsi)
 	  ret
+   
+/*char hex_to_printable(unsigned char byteval){
+   if (byteval < 32 || byteval == 127 || byteval > 254){
+       return '.';
+   }
+   return byteval;
+}*/
 
-	hex_to_printable:
+	hex_to_printable: // %rdi or (%dil)b is bassed as byteval equivalent
+	  cmp $32, %dil
+      jb .LdecNum
+	  cmp $254, %dil
+      ja .LdecNum
+	  cmp $127, %dil
+      je .LdecNum
+	  movb %dil, %al
 	  ret
+	.LdecNum:
+	   movb $46, %al
+	   ret
+	
+    
+	  
 
 	/*char to_hex(unsigned val) {
     if (val < 10) {
@@ -45,7 +66,7 @@
     
 	// val in %rdx, return to %rdx
 	to_hex:
-	  cmp $10, %rdx   // if %rax > 10, jump to else
+	  cmp $9, %rdx   // if %rax > 10, jump to else
       ja .LifLetter
 	  addq $48, %rdx
 	  ret
