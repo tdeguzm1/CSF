@@ -13,9 +13,10 @@ int main(void) {
   char* newline = "\n";
   unsigned num_buffs = 0;
   unsigned chars_read;
-  while (1) {
+  chars_read = hex_read(buff);
+  while (chars_read > 0) {
     //hex_write_string(newline);
-    chars_read = hex_read(buff);
+    //chars_read = hex_read(buff);
     hex_format_offset(num_buffs*16, offset_buff);
     hex_write_string(offset_buff);
     hex_write_string(colon);
@@ -44,7 +45,10 @@ int main(void) {
     }
     hex_write_string(newline);
     if (chars_read < 16){
-      break;
+      chars_read = 0;
+    }
+    else {
+      chars_read = hex_read(buff);
     }
 
     
