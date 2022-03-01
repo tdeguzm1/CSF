@@ -1,3 +1,10 @@
+/*
+ * Code to implement hexdump
+ * CSF Assignment 2 MS1
+ * Theo DeGuzman
+ * tdeguzm1@jhu.edu
+ */
+
 // Unit tests for hex functions
 // These tests should work for both your C implementations and your
 // assembly language implementations
@@ -45,17 +52,25 @@ int main(int argc, char **argv) {
   return 0;
 }
 
+// These functions test the hex_format_offset
 void testFormatOffset(TestObjs *objs) {
   (void) objs; // suppress warning about unused parameter
   char buf[16];
   hex_format_offset(1L, buf);
-  //printf("%s\n", buf);
   ASSERT(0 == strcmp(buf, "00000001"));
+  hex_format_offset(2L, buf);
+  ASSERT(0 == strcmp(buf, "00000002"));
+  hex_format_offset(0xaL, buf);
+  ASSERT(0 == strcmp(buf, "0000000a"));
+  hex_format_offset(0x10L, buf);
+  ASSERT(0 == strcmp(buf, "00000010"));
+  hex_format_offset(0x1000aL, buf);
+  ASSERT(0 == strcmp(buf, "0001000a"));
 }
 
+// These functions test the hex_format_byte_as_hex
 void testFormatByteAsHex(TestObjs *objs) {
   char buf[16];
-  
   
   //Hello,
   hex_format_byte_as_hex(objs->test_data_1[0], buf);
@@ -73,7 +88,6 @@ void testFormatByteAsHex(TestObjs *objs) {
 
   // world!
   hex_format_byte_as_hex(objs->test_data_1[6], buf);
-  //printf("Start value: \"%s\"\n", buf);
   ASSERT(0 == strcmp(buf, "20"));
   
   hex_format_byte_as_hex(objs->test_data_1[7], buf);
@@ -90,21 +104,24 @@ void testFormatByteAsHex(TestObjs *objs) {
   ASSERT(0 == strcmp(buf, "21")); // !
   
   hex_format_byte_as_hex(objs->test_data_1[13], buf);
-  //printf("Start value: \"%s\"\n", buf);
   ASSERT(0 == strcmp(buf, "0a")); // \n
   
   hex_format_byte_as_hex(objs->test_data_1[14], buf);
-  //printf("Start value: \"%s\"\n", buf);
   ASSERT(0 == strcmp(buf, "00")); // \0
-  
-
-
 
 }
 
+
 void testHexToPrintable(TestObjs *objs) {
-  //printf("%d\n", hex_to_printable(objs->test_data_1[0]));
-  //printf("%d\n", hex_to_printable(objs->test_data_1[13]));
+  
   ASSERT('H' == hex_to_printable(objs->test_data_1[0]));
+  ASSERT('l' == hex_to_printable(objs->test_data_1[3]));
+  ASSERT(',' == hex_to_printable(objs->test_data_1[5]));
+  ASSERT(' ' == hex_to_printable(objs->test_data_1[6]));
   ASSERT('.' == hex_to_printable(objs->test_data_1[13]));
+
+  ASSERT('.' == hex_to_printable('\t'));
+  ASSERT('.' == hex_to_printable('\0'));
+  ASSERT('@' == hex_to_printable('@'));
+  ASSERT('*' == hex_to_printable('*'));
 }
