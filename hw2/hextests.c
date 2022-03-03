@@ -35,6 +35,8 @@ void cleanup(TestObjs *objs) {
 void testFormatOffset(TestObjs *objs);
 void testFormatByteAsHex(TestObjs *objs);
 void testHexToPrintable(TestObjs *objs);
+void testHexRead(TestObjs *objs);
+void testHexWrite(TestObjs *objs);
 
 int main(int argc, char **argv) {
   if (argc > 1) {
@@ -46,10 +48,31 @@ int main(int argc, char **argv) {
   TEST(testFormatOffset);
   TEST(testFormatByteAsHex);
   TEST(testHexToPrintable);
+  TEST(testHexRead);
+  //TEST(testHexWrite);
 
   TEST_FINI();
 
   return 0;
+}
+
+void testHexRead(TestObjs *objs) {
+  (void) objs;
+  char buf[17];
+
+  int i = hex_read(buf);
+  buf[i] = 0;
+  hex_write_string(buf);
+  //printf("%s\n", buf);
+
+}
+
+void testHexWrite(TestObjs *objs) {
+  (void) objs;
+  char* buf = "Hello there!\n";
+
+  hex_write_string(buf);
+
 }
 
 // These functions test the hex_format_offset

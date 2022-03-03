@@ -18,8 +18,93 @@
 	  .globl hex_format_byte_as_hex
 	  .globl hex_to_printable
 	  .globl hex_format_offset
+	  .globl hex_write_string
+	  .globl hex_read
     
+    // Write given nul-terminated string to standard output.
+    //
+    // Parameters:
+    //     char[] s - a string to be written (in %rdi)
+    //  
+	hex_write_string:
+      subq $8, %rsp
+      movq $0, %r10
+	.LwriteLoop:
+	  leaq (%rdi, %r10, 1), %rsi
+      cmpb $0, (%rsi)
+	  je .LwriteLoopDone
+	  pushq %rdi
+	  pushq %r10
+      movq $1, %rdi
+	  movq $1, %rdx
+      call write
+	  popq %r10
+      popq %rdi
+	  incq %r10
+      jmp .LwriteLoop
+    .LwriteLoopDone:
+	  addq $8, %rsp
+	  ret
+
+    /*
+	void hex_write_string(const char s[]){
+      size_t i = 0;
+      while (s[i] != '\0') {
+        if (write(STDOUT_FILENO, &s[i], 1) < 1); // if block handles compiler warning
+        i++;
+      }
+    }*/
+
+    // Read up to 16 bytes from standard input into data_buf.
+    // Returns the number of characters read.
+    //
+    // Parameters:
+    //     char[] data_buf - a string to put read bytes into- passed in %rdi
+    //              Pre: data_buf must be >= 17 bytes
+    // Returns:
+    //     number of bytes read into data_buf, returned in %rax
+	hex_read:
+	  pushq %rbp                     // save frame pointer
+	  subq $16, %rsp                 // make 16 bytes on stack for char (only really need 8)
+      movq %rsp, %rbp                // point frame pointer to stack pointer
+	  movq $0, %rax                  // %rax used as a counter to track number of bytes read
+	.LreadLoop:
+      cmp $16, %rax                  // check if counter is geater than 16
+	  jae .LloopDone                 // exit loop if greater than 16
+	  pushq %rdi                     // save sbuf[] reference before call to read
+	  pushq %rax                     // save counter before call to read
+	  movq $0, %rdi                  // move STDIN_FILENO into 1st argument (%rdi)
+	  movq %rbp, %rsi                // move address of c into 2nd argument (%rsi)
+	  movq $1, %rdx                  // move 1 (number of bytes) into 3rd argument (%rdx)
+	  call read                      // read(STDIN_FILENO, &c, 1); returns number of arguments read in rax
+	  cmp $0, %rax                   // check number of values read
+	  jbe .LloopDone                 // exit loop if zero bytes were read
+	  popq %rax                      // restore counter
+	  popq %rdi                      // restore sbuf[] reference
+	  movb (%rbp), %r10b             // temporarily store value saved in rbp
+	  movb %r10b, (%rdi, %rax, 1)    // store character in proper spot in sbuf[]
+	  incq %rax
+	  jmp .LreadLoop
+    .LloopDone:
+      //movb $0, (%rdi, %rax, 1)
+	  //popq %rax
+	  //popq %rdi
+	  addq $16, %rsp 
+	  popq %rbp
+	  ret
     
+	/*
+	unsigned hex_read(char data_buf[]) {
+       unsigned count = 0;
+       char c;
+       while (count < 16 && read(STDIN_FILENO, &c, 1) > 0) {
+         data_buf[count] = c;
+         count++;
+       }
+       data_buf[count] = '\0';
+       return count;
+    }*/
+
 
 	// Format a byte value (in the range 0-255) as string consisting
     // of two hex digits.  The string is stored in sbuf.

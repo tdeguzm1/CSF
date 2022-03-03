@@ -18,14 +18,14 @@
 //              Pre: data_buf must be >= 17 bytes
 // Returns:
 //     number of bytes read into data_buf
-unsigned hex_read(char data_buf[]){
+unsigned hex_read(char data_buf[]) {
   unsigned count = 0;
   char c;
   while (count < 16 && read(STDIN_FILENO, &c, 1) > 0) {
       data_buf[count] = c;
       count++;
   }
-  data_buf[count] = '\0';
+  //data_buf[count] = '\0';
   return count;
 }
 

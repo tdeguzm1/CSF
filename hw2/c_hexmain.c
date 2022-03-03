@@ -11,6 +11,7 @@
 
 
 #include "hexfuncs.h"  // this is the only header file which may be included!
+#include <stdio.h>
 
 void print_hex_equivalent(char* buff, const unsigned chars_read); // main helper function
 void reprint_ascii_form(char* buff, const unsigned chars_read); // main helper function
@@ -20,6 +21,9 @@ int main(void) {
   char offset_buff[9];
   unsigned num_buffs = 0;
   unsigned chars_read = hex_read(buff);
+  buff[17] = '\0';
+  printf("%s\n", buff);
+  printf("%d\n", chars_read);
   
   // main implementation loop
   while (chars_read > 0) {
