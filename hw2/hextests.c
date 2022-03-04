@@ -48,7 +48,7 @@ int main(int argc, char **argv) {
   TEST(testFormatOffset);
   TEST(testFormatByteAsHex);
   TEST(testHexToPrintable);
-  TEST(testHexRead);
+  //TEST(testHexRead);
   //TEST(testHexWrite);
 
   TEST_FINI();
@@ -79,6 +79,8 @@ void testHexWrite(TestObjs *objs) {
 void testFormatOffset(TestObjs *objs) {
   (void) objs; // suppress warning about unused parameter
   char buf[16];
+  hex_format_offset(0, buf);
+  ASSERT(0 == strcmp(buf, "00000000"));
   hex_format_offset(1L, buf);
   ASSERT(0 == strcmp(buf, "00000001"));
   hex_format_offset(2L, buf);
@@ -88,6 +90,7 @@ void testFormatOffset(TestObjs *objs) {
   hex_format_offset(0x10L, buf);
   ASSERT(0 == strcmp(buf, "00000010"));
   hex_format_offset(0x1000aL, buf);
+  
   ASSERT(0 == strcmp(buf, "0001000a"));
 }
 

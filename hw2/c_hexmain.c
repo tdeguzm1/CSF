@@ -21,19 +21,24 @@ int main(void) {
   char offset_buff[9];
   unsigned num_buffs = 0;
   unsigned chars_read = hex_read(buff);
-  buff[17] = '\0';
-  printf("%s\n", buff);
-  printf("%d\n", chars_read);
+  //buff[17] = '\0';
+  //printf("%s\n", buff);
+  //printf("%d\n", chars_read);
   
   // main implementation loop
   while (chars_read > 0) {
     
     // print the line number
+    //printf("\nBuff address: %p\n", buff);
+    //printf("offset_buff address: %p\n", offset_buff);
     hex_format_offset(num_buffs*16, offset_buff);
+    //printf("\nBuff after offset: %s\n", buff);
+    
     hex_write_string(offset_buff);
-    hex_write_string(":");
-    hex_write_string(" ");
+    hex_write_string(": ");
     num_buffs++;
+
+    //printf("\nBuff after offset: %s\n", buff);
 
     // print the hex conversion and ascii equivalent
     print_hex_equivalent(buff, chars_read);
@@ -41,11 +46,9 @@ int main(void) {
     
     // detect end of input
     if (chars_read < 16){
-      chars_read = 0;
+      break;
     }
-    else {
-      chars_read = hex_read(buff);
-    }
+    chars_read = hex_read(buff);
   }
 }
 
@@ -79,13 +82,11 @@ void print_hex_equivalent(char* buff, const unsigned chars_read) {
 //   unsigned chars_read - number of items in the buffer
 //
 void reprint_ascii_form(char* buff, const unsigned chars_read) {
-  unsigned i = 0;
   char c[2];
-  while(i < chars_read){
+  for (unsigned i = 0; i < chars_read; i++){
     c[0] = hex_to_printable(buff[i]);
     c[1] = '\0';
     hex_write_string(c);
-    i++;
   }
   hex_write_string("\n");
 }

@@ -19,14 +19,7 @@
 // Returns:
 //     number of bytes read into data_buf
 unsigned hex_read(char data_buf[]) {
-  unsigned count = 0;
-  char c;
-  while (count < 16 && read(STDIN_FILENO, &c, 1) > 0) {
-      data_buf[count] = c;
-      count++;
-  }
-  //data_buf[count] = '\0';
-  return count;
+  return read(STDIN_FILENO, data_buf, 16);
 }
 
 // Write given nul-terminated string to standard output.
@@ -70,8 +63,8 @@ char to_hex(unsigned val) {
 void hex_format_offset(unsigned offset, char sbuf[]){
   sbuf[8] = '\0';
   for (int i = 7; i >= 0; i--) {
-    sbuf[i] = to_hex(offset % 16);
-    offset /= 16;
+    sbuf[i] = to_hex(offset & 15);
+    offset = offset >> 4;
   }
 }
 
@@ -84,8 +77,8 @@ void hex_format_offset(unsigned offset, char sbuf[]){
 //                   Pre: must have >= 3 bytes
 //   
 void hex_format_byte_as_hex(unsigned char byteval, char sbuf[]){
-  sbuf[0] = to_hex(byteval / 16);
-  sbuf[1] = to_hex(byteval % 16);
+  sbuf[0] = to_hex(byteval >> 4);  // same as / 16
+  sbuf[1] = to_hex(byteval & 15);  // same as % 16
   sbuf[2] = '\0';
 }
 
