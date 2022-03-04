@@ -13,7 +13,6 @@
 
 .section .rodata
   oneSpace: .string " "
-  twoSpace: .string "  "
   threeSpace: .string "   "
   colonSpace: .string ": "
   newLine: .string "\n"

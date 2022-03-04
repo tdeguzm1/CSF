@@ -29,12 +29,16 @@ c_hexdump : c_hexfuncs.o c_hexmain.o
 asm_hextests : asm_hexfuncs.o hextests.o tctest.o
 	gcc -o $@ $(LDFLAGS) asm_hexfuncs.o hextests.o tctest.o
 
-asm_hexdump : asm_hexfuncs.o asm_hexmain.o
+asm_hexdump : asm_hexfuncs.o asm_hexmain.o 
 	gcc -o $@ $(LDFLAGS) asm_hexfuncs.o asm_hexmain.o
 
 # hexdump program using C main and assembly language functions
-casm_hexdump : asm_hexfuncs.o c_hexmain.o
+casm_hexdump : asm_hexfuncs.o c_hexmain.o 
 	gcc -o $@ $(LDFLAGS) asm_hexfuncs.o c_hexmain.o
+
+# soley for testing purposes
+asmc_hexdump : asm_hexmain.o c_hexfuncs.o 
+	gcc -o $@ $(LDFLAGS) asm_hexmain.o c_hexfuncs.o
 
 # Use this target to create a zipfile that you can submit to Gradescope
 .PHONY: solution.zip
