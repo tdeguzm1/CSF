@@ -21,14 +21,16 @@
 
 	.globl main
 
-main:
-  pushq %rbx        
-  pushq %rbp
+// //1 means stack misaligned, //0 is stack aligned
+
+main: //1
+  pushq %rbx     //0   
+  pushq %rbp     //1
 
   // C lines 20 & 21
-  subq $40, %rsp        // allocate space for a 9 byte string and 17 byte string
-  movq %rsp, %rbx       // %rbx holds location of offset_buff (needs 9 bytes, has 16)
-  leaq 16(%rsp), %rbp   // %rbp holds location of buff  (needs 17 bytes, has 24)
+  subq $248, %rsp        //0 // allocate space for a 9 byte string and 17 byte string
+  leaq 32(%rsp), %rbx       // %rbx holds location of offset_buff (needs 9 bytes, has 16)
+  leaq 128(%rsp), %rbp   // %rbp holds location of buff  (needs 17 bytes, has 24)
 
   // C line 23
   movq %rbp, %rdi     // passes buffer to read into as first argument
@@ -43,10 +45,10 @@ main:
   jle .LmainLoopDone  // if no characters were read, return
   
 
-  pushq %rax          // save number of characters read
-  pushq %r10          // save number of buffers read
+  pushq %rax          //1 // save number of characters read
+  pushq %r10          //0 // save number of buffers read
   
-  // C line 29
+/*  // C line 29
   shl $4, %r10             // multiply number of buffers by 16
   movq %r10, %rdi          // pass result of multipication as first argument
   movq %rbx, %rsi          // pass buffer to store offset string as second argument
@@ -59,31 +61,31 @@ main:
   // C line 31
   movq $colonSpace, %rdi   
   call hex_write_string    // write ": " for format
-  
+*/
   
   // C line 32
-  popq %r10                // restore %r10 as buffer counter               
-  popq %rax                // restore %rax as bytes read counter
+  popq %r10               //1 // restore %r10 as buffer counter               
+  popq %rax               //0 // restore %rax as bytes read counter
   incq %r10                // increment buffer counter
 
 
   // C line 35
-  pushq %rax
-  pushq %r10
+  pushq %rax  //1
+  pushq %r10  //0
   movq %rbp, %rdi                // pass buffer to write hex equivalent as first argument
   movq %rax, %rsi                // pass number of values read as second argument
   call print_hex_equivalent      
-  popq %r10
-  popq %rax
+  popq %r10  //1
+  popq %rax  //0
   
   // C line 36
-  pushq %rax
-  pushq %r10
+  pushq %rax  //1
+  pushq %r10  //0
   movq %rbp, %rdi                // pass buffer to rewrite to ouput 
   movq %rax, %rsi                // pass number of bytes read 
   call reprint_ascii_form
-  popq %r10
-  popq %rax
+  popq %r10  //1
+  popq %rax  //0
   
   // C lines 39 and 40
   cmp $16, %rax
@@ -93,16 +95,93 @@ main:
   movq %rbp, %rdi        // pass buffer to place values read 
   call hex_read          
   
-
   jmp .LmainLoop
 
 .LmainLoopDone:
-  addq $40, %rsp   // return the stack and callee saved registers to inital state
-  popq %rbp
-  popq %rbx
+  addq $248, %rsp  //1  // return the stack and callee saved registers to inital state
+  popq %rbp       //0
+  popq %rbx       //1
+	ret             //0
+
+
+/*
+.LC0:
+	.string	": "
+	.text
+	.globl	main
+	.type	main, @function
+main:
+.LFB0:
+	.cfi_startproc
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
+	movq	%rsp, %rbp
+	.cfi_def_cfa_register 6
+	subq	$240, %rsp
+	movq	%fs:40, %rax
+	movq	%rax, -8(%rbp)
+	xorl	%eax, %eax
+	movl	$0, -232(%rbp)
+	leaq	-224(%rbp), %rax
+	movq	%rax, %rdi
+	call	hex_read@PLT
+	movl	%eax, -228(%rbp)
+	jmp	.L2
+.L5:
+	movl	-232(%rbp), %eax
+	sall	$4, %eax
+	movl	%eax, %edx
+	leaq	-112(%rbp), %rax
+	movq	%rax, %rsi
+	movl	%edx, %edi
+	call	hex_format_offset@PLT
+	leaq	-112(%rbp), %rax
+	movq	%rax, %rdi
+	call	hex_write_string@PLT
+	leaq	.LC0(%rip), %rdi
+	call	hex_write_string@PLT
+	addl	$1, -232(%rbp)
+	movl	-228(%rbp), %edx
+	leaq	-224(%rbp), %rax
+	movl	%edx, %esi
+	movq	%rax, %rdi
+	call	print_hex_equivalent@PLT
+	movl	-228(%rbp), %edx
+	leaq	-224(%rbp), %rax
+	movl	%edx, %esi
+	movq	%rax, %rdi
+	call	reprint_ascii_form@PLT
+	cmpl	$15, -228(%rbp)
+	jbe	.L8
+	leaq	-224(%rbp), %rax
+	movq	%rax, %rdi
+	call	hex_read@PLT
+	movl	%eax, -228(%rbp)
+.L2:
+	cmpl	$0, -228(%rbp)
+	jne	.L5
+	jmp	.L4
+.L8:
+	nop
+.L4:
+	movl	$0, %eax
+	movq	-8(%rbp), %rcx
+	xorq	%fs:40, %rcx
+	je	.L7
+	call	__stack_chk_fail@PLT
+.L7:
+	leave
+	.cfi_def_cfa 7, 8
 	ret
+	.cfi_endproc
+.LFE0:
+	.size	main, .-main
+	.ident	"GCC: (Ubuntu 7.5.0-3ubuntu1~18.04) 7.5.0"
+	.section	.note.GNU-stack,"",@progbits
+*/
 
-
+/*
 // Prints the hex equivalent of a 16 byte input buffer
 //
 // Parameters:
@@ -230,6 +309,6 @@ reprint_ascii_form:
     addq $16, %rsp          
     popq %rbp
     ret
-
+*/
 /* vim:ft=gas:
  */

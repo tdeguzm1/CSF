@@ -18,7 +18,7 @@ void reprint_ascii_form(char* buff, const unsigned chars_read); // main helper f
 
 int main(void) {
   char buff[100];
-  char offset_buff[100];
+  //char offset_buff[100];
   unsigned num_buffs = 0;
   unsigned chars_read = hex_read(buff);
   
@@ -26,9 +26,10 @@ int main(void) {
   while (chars_read > 0) {
     
     // format and write offset
-    hex_format_offset(num_buffs*16, offset_buff);    
-    hex_write_string(offset_buff);
-    hex_write_string(": ");
+    print_hex_offset(num_buffs);
+    //hex_format_offset(num_buffs*16, offset_buff);    
+    //hex_write_string(offset_buff);
+    //hex_write_string(": ");
     num_buffs++;
     
     // print the hex conversion and ascii equivalent
@@ -42,7 +43,7 @@ int main(void) {
     chars_read = hex_read(buff);
   }
 }
-
+/*
 // Prints the hex equivalent of a 16 byte input buffer
 //
 // Parameters:
@@ -80,4 +81,4 @@ void reprint_ascii_form(char* buff, const unsigned chars_read) {
     hex_write_string(c);
   }
   hex_write_string("\n");
-}
+}*/
