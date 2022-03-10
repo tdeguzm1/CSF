@@ -56,17 +56,18 @@ int main(int argc, char **argv) {
   return 0;
 }
 
+// these were used in development to test I/O operations
 void testHexRead(TestObjs *objs) {
   (void) objs;
   char buf[17];
 
   int i = hex_read(buf);
   buf[i] = 0;
-  hex_write_string(buf);
-  //printf("%s\n", buf);
+  printf("%s\n", buf);
 
 }
 
+// these were used in development to test I/O operations
 void testHexWrite(TestObjs *objs) {
   (void) objs;
   char* buf = "Hello there!\n";
@@ -89,9 +90,14 @@ void testFormatOffset(TestObjs *objs) {
   ASSERT(0 == strcmp(buf, "0000000a"));
   hex_format_offset(0x10L, buf);
   ASSERT(0 == strcmp(buf, "00000010"));
+  hex_format_offset(0x30L, buf);
+  ASSERT(0 == strcmp(buf, "00000030"));
   hex_format_offset(0x1000aL, buf);
-  
   ASSERT(0 == strcmp(buf, "0001000a"));
+  hex_format_offset(0xabcdef01UL, buf);
+  ASSERT(0 == strcmp(buf, "abcdef01"));
+  hex_format_offset(0xffffffffUL, buf);
+  ASSERT(0 == strcmp(buf, "ffffffff"));
 }
 
 // These functions test the hex_format_byte_as_hex
@@ -115,7 +121,6 @@ void testFormatByteAsHex(TestObjs *objs) {
   // world!
   hex_format_byte_as_hex(objs->test_data_1[6], buf);
   ASSERT(0 == strcmp(buf, "20"));
-  
   hex_format_byte_as_hex(objs->test_data_1[7], buf);
   ASSERT(0 == strcmp(buf, "77")); // w
   hex_format_byte_as_hex(objs->test_data_1[8], buf);
@@ -135,19 +140,47 @@ void testFormatByteAsHex(TestObjs *objs) {
   hex_format_byte_as_hex(objs->test_data_1[14], buf);
   ASSERT(0 == strcmp(buf, "00")); // \0
 
+
+  // now test passing non-char values
+  hex_format_byte_as_hex(1, buf);
+  ASSERT(0 == strcmp(buf, "01"));
+  hex_format_byte_as_hex(12, buf);
+  ASSERT(0 == strcmp(buf, "0c"));
+  hex_format_byte_as_hex(94, buf);
+  ASSERT(0 == strcmp(buf, "5e"));
+  hex_format_byte_as_hex(255, buf);
+  ASSERT(0 == strcmp(buf, "ff"));
+
 }
 
 
 void testHexToPrintable(TestObjs *objs) {
   
+  // alphabetic characters
   ASSERT('H' == hex_to_printable(objs->test_data_1[0]));
   ASSERT('l' == hex_to_printable(objs->test_data_1[3]));
   ASSERT(',' == hex_to_printable(objs->test_data_1[5]));
   ASSERT(' ' == hex_to_printable(objs->test_data_1[6]));
   ASSERT('.' == hex_to_printable(objs->test_data_1[13]));
+  
+  // numeric characters
+  ASSERT('1' == hex_to_printable('1'));
+  ASSERT('0' == hex_to_printable('0'));
+  ASSERT('9' == hex_to_printable('9'));
 
+  // non alpha-numeric charcters
   ASSERT('.' == hex_to_printable('\t'));
   ASSERT('.' == hex_to_printable('\0'));
+  ASSERT('.' == hex_to_printable('\n'));
   ASSERT('@' == hex_to_printable('@'));
   ASSERT('*' == hex_to_printable('*'));
+
+  // pass non-char values
+  ASSERT('.' == hex_to_printable(0));
+  ASSERT('.' == hex_to_printable(1));
+  ASSERT('a' == hex_to_printable(97));
+  ASSERT('.' == hex_to_printable(255));
+  ASSERT('.' == hex_to_printable(128));
+  ASSERT('.' == hex_to_printable(31));
+
 }

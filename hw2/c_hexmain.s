@@ -1,9 +1,5 @@
 	.file	"c_hexmain.c"
 	.text
-	.section	.rodata
-.LC0:
-	.string	": "
-	.text
 	.globl	main
 	.type	main, @function
 main:
@@ -14,59 +10,42 @@ main:
 	.cfi_offset 6, -16
 	movq	%rsp, %rbp
 	.cfi_def_cfa_register 6
-	subq	$240, %rsp
-	movq	%fs:40, %rax
-	movq	%rax, -8(%rbp)
-	xorl	%eax, %eax
-	movl	$0, -232(%rbp)
-	leaq	-224(%rbp), %rax
+	subq	$112, %rsp
+	movl	$0, -4(%rbp)
+	leaq	-112(%rbp), %rax
 	movq	%rax, %rdi
 	call	hex_read@PLT
-	movl	%eax, -228(%rbp)
+	movl	%eax, -8(%rbp)
 	jmp	.L2
 .L5:
-	movl	-232(%rbp), %eax
-	sall	$4, %eax
-	movl	%eax, %edx
+	movl	-4(%rbp), %eax
+	movl	%eax, %edi
+	call	print_hex_offset@PLT
+	addl	$1, -4(%rbp)
+	movl	-8(%rbp), %edx
 	leaq	-112(%rbp), %rax
-	movq	%rax, %rsi
-	movl	%edx, %edi
-	call	hex_format_offset@PLT
-	leaq	-112(%rbp), %rax
-	movq	%rax, %rdi
-	call	hex_write_string@PLT
-	leaq	.LC0(%rip), %rdi
-	call	hex_write_string@PLT
-	addl	$1, -232(%rbp)
-	movl	-228(%rbp), %edx
-	leaq	-224(%rbp), %rax
 	movl	%edx, %esi
 	movq	%rax, %rdi
 	call	print_hex_equivalent@PLT
-	movl	-228(%rbp), %edx
-	leaq	-224(%rbp), %rax
+	movl	-8(%rbp), %edx
+	leaq	-112(%rbp), %rax
 	movl	%edx, %esi
 	movq	%rax, %rdi
 	call	reprint_ascii_form@PLT
-	cmpl	$15, -228(%rbp)
-	jbe	.L8
-	leaq	-224(%rbp), %rax
+	cmpl	$15, -8(%rbp)
+	jbe	.L7
+	leaq	-112(%rbp), %rax
 	movq	%rax, %rdi
 	call	hex_read@PLT
-	movl	%eax, -228(%rbp)
+	movl	%eax, -8(%rbp)
 .L2:
-	cmpl	$0, -228(%rbp)
+	cmpl	$0, -8(%rbp)
 	jne	.L5
 	jmp	.L4
-.L8:
+.L7:
 	nop
 .L4:
 	movl	$0, %eax
-	movq	-8(%rbp), %rcx
-	xorq	%fs:40, %rcx
-	je	.L7
-	call	__stack_chk_fail@PLT
-.L7:
 	leave
 	.cfi_def_cfa 7, 8
 	ret

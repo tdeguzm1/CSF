@@ -63,7 +63,7 @@ char to_hex(unsigned val) {
 void hex_format_offset(unsigned offset, char sbuf[]){
   sbuf[8] = '\0';
   for (int i = 7; i >= 0; i--) {
-    sbuf[i] = to_hex(offset & 15);
+    sbuf[i] = to_hex(offset & 15);  // same as offset % 16
     offset = offset >> 4;
   }
 }
@@ -97,89 +97,4 @@ char hex_to_printable(unsigned char byteval){
        return '.';
    }
    return byteval;
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-////////////////////////////
-// Prints the hex equivalent of a 16 byte input buffer
-//
-// Parameters:
-//   *char buff - pointer to a ascii string
-//   unsigned chars_read - number of items in the buffer
-//
-void print_hex_equivalent(char* buff, const unsigned chars_read) {
-  unsigned i = 0;
-  char char_buff[100];
-  while(i < chars_read){
-    hex_format_byte_as_hex(buff[i], char_buff);
-    hex_write_string(char_buff);
-    hex_write_string(" ");
-    i++;
-  }
-  while (i < 16) {
-    hex_write_string("   ");
-    i++;
-  }
-  hex_write_string(" ");
-}
-
-
-// Prints the ascii form of a 16 byte input buffer
-//
-// Parameters:
-//   *char buff - pointer to a ascii string
-//   unsigned chars_read - number of items in the buffer
-//
-void reprint_ascii_form(char* buff, const unsigned chars_read) {
-  char c[100];
-  for (unsigned i = 0; i < chars_read; i++){
-    c[0] = hex_to_printable(buff[i]);
-    c[1] = '\0';
-    hex_write_string(c);
-  }
-  hex_write_string("\n");
-}
-
-void print_hex_offset(unsigned num_buffs) {
-  char offset_buff[100];
-  hex_format_offset(num_buffs*16, offset_buff);    
-  hex_write_string(offset_buff);
-  hex_write_string(": ");
 }

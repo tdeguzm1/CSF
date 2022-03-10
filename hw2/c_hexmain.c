@@ -13,12 +13,13 @@
 #include "hexfuncs.h"  // this is the only header file which may be included!
 #include <stdio.h>
 
+// helper functions I added here, to make local to this file
 void print_hex_equivalent(char* buff, const unsigned chars_read); // main helper function
 void reprint_ascii_form(char* buff, const unsigned chars_read); // main helper function
+void print_hex_offset(unsigned num_buffs);
 
 int main(void) {
-  char buff[100];
-  //char offset_buff[100];
+  char buff[17];
   unsigned num_buffs = 0;
   unsigned chars_read = hex_read(buff);
   
@@ -27,9 +28,6 @@ int main(void) {
     
     // format and write offset
     print_hex_offset(num_buffs);
-    //hex_format_offset(num_buffs*16, offset_buff);    
-    //hex_write_string(offset_buff);
-    //hex_write_string(": ");
     num_buffs++;
     
     // print the hex conversion and ascii equivalent
@@ -43,7 +41,8 @@ int main(void) {
     chars_read = hex_read(buff);
   }
 }
-/*
+
+
 // Prints the hex equivalent of a 16 byte input buffer
 //
 // Parameters:
@@ -52,7 +51,7 @@ int main(void) {
 //
 void print_hex_equivalent(char* buff, const unsigned chars_read) {
   unsigned i = 0;
-  char char_buff[100];
+  char char_buff[3];
   while(i < chars_read){
     hex_format_byte_as_hex(buff[i], char_buff);
     hex_write_string(char_buff);
@@ -74,11 +73,23 @@ void print_hex_equivalent(char* buff, const unsigned chars_read) {
 //   unsigned chars_read - number of items in the buffer
 //
 void reprint_ascii_form(char* buff, const unsigned chars_read) {
-  char c[100];
+  char c[2];
   for (unsigned i = 0; i < chars_read; i++){
     c[0] = hex_to_printable(buff[i]);
     c[1] = '\0';
     hex_write_string(c);
   }
   hex_write_string("\n");
-}*/
+}
+
+// Prints formatted hex offset
+//
+// Parameters:
+//   num_buffs- the number of buffers full read
+//
+void print_hex_offset(unsigned num_buffs) {
+  char offset_buff[9];
+  hex_format_offset(num_buffs*16, offset_buff);    
+  hex_write_string(offset_buff);
+  hex_write_string(": ");
+}

@@ -26,9 +26,5 @@ void hex_format_byte_as_hex(unsigned char byteval, char sbuf[]);
 // ASCII code for '.' should be returned.
 char hex_to_printable(unsigned char byteval);
 
-void print_hex_equivalent(char* buff, const unsigned chars_read); // main helper function
-void reprint_ascii_form(char* buff, const unsigned chars_read); // main helper function
-void print_hex_offset(unsigned num_buffs);
-
 
 #endif // HEXFUNCS_H
