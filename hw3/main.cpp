@@ -1,3 +1,11 @@
+/*
+ * Code to cache simulation
+ * CSF Assignment 3 MS1
+ * Theo DeGuzman
+ * tdeguzm1@jhu.edu
+ */
+
+
 #include <iostream>
 #include <vector>
 #include <string.h>
@@ -12,6 +20,16 @@ void check_valid_inputs(int num_args, char* input_args[]);
 int main(int argc, char* argv[]) {
   check_valid_inputs(argc, argv);
   cache myCache = cache(argv);
+
+  std::string ls;
+  std::string address;
+  std::string offset;
+  while (std::cin >> ls && std::cin >> address) {
+    std::cin >> offset; // remove "random" other value from end of input
+    myCache.load_store(ls, address);
+  }
+  myCache.print_summary();
+  
 }
 
 
@@ -22,15 +40,15 @@ void check_valid_inputs(int num_args, char* input_args[]){
       std::cerr << "Invalid number of parameters given" << std::endl;
       throw -1;
   }
-  else if(!(atoi(input_args[1]) > 0 && atoi(input_args[1]) % 2 == 0)){
+  else if(!(atoi(input_args[1]) > 0 && (atoi(input_args[1]) & (atoi(input_args[1]) - 1)) == 0)){
       std::cerr << "Invalid number of sets" << std::endl;
       throw 1;
   }
-  else if(!(atoi(input_args[2]) > 0 && atoi(input_args[2]) % 2 == 0)){
+  else if(!(atoi(input_args[2]) > 0 && (atoi(input_args[2]) & (atoi(input_args[2]) - 1)) == 0)){
       std::cerr << "Invalid number of blocks per set" << std::endl;
       throw 2;
   }
-  else if(!(atoi(input_args[3]) >= 4 && atoi(input_args[3]) % 2 == 0)){
+  else if(!(atoi(input_args[3]) >= 4 && (atoi(input_args[3]) & (atoi(input_args[3]) - 1)) == 0)){
       std::cerr << "Invalid number of bytes per block" << std::endl;
       throw 3;
   }
