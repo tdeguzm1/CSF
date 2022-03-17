@@ -12,61 +12,61 @@ set::set(unsigned new_index, cache_stats stats){
     myStats = stats;
 
     for (unsigned i = 0; i < myStats.num_slots; i++){
-        slots.push_back(slot(i, myStats));
+        slots[i] = slot();
     }
 }
 
-int set::find(unsigned target_tag) {
-   for (unsigned i = 0; i < myStats.num_slots; i++) {
-       if (slots[i].getTag() == target_tag) {
-           return i;
-       }
-   }
-   return -1;
+bool set::contains(unsigned target_tag) {
+    if (slots.find(target_tag) != slots.end()) {
+        return true;
+    }
+    return false;
 }
 
 void set::insert(unsigned new_tag, unsigned time) {
-   for (unsigned i = 0; i < myStats.num_slots; i++) {
-       if (!slots[i].isValid()) {
-           slots[i].place_value(new_tag, time);
-           return;
-       }
-   }
-   
-   unsigned my_index = remove();
-   slots[my_index].place_value(new_tag, time);
+   this->remove();
+   slots[new_tag] = slot(new_tag, time, myStats);
 
 }
 
-unsigned set::remove(){
-   unsigned min_time = (unsigned) -1; // corresponds to max unsigned value
-   unsigned index;
-   if (myStats.rem_scheme) { // fifo
-      for (unsigned i = 0; i < myStats.num_slots; i++) {
-          if (slots[i].getLoadTime() < min_time) {
-              index = i;
-          }
-      }
-   }
-   else {  // lru
-      for (unsigned i = 0; i < myStats.num_slots; i++) {
-          if (slots[i].getAccessTime() < min_time) {
-              index = i;
-          }
-      }
-   }
+void set::remove() {
+   unsigned min_time = 4294967295; // corresponds to max unsigned value
+   unsigned slot_address;
+   for (std::map<unsigned, slot>::iterator it = slots.begin(); it != slots.end(); it++) {
+        if (!it->second.isValid()) {
+            slots.erase(it->first);
+            //std::cout << "empty slot should be removed" << std::endl;
+            return; // shortcut if there is a not-valid value
+        }
+        else if (myStats.rem_scheme && it->second.getLoadTime() < min_time) { // fifo - remove the earliest load time
+            min_time = it->second.getLoadTime();
+            slot_address = it->first;
+        }
+        else if (!myStats.rem_scheme && it->second.getAccessTime() < min_time) { // lru - remove the earliest access time
+            min_time = it->second.getAccessTime();
+            slot_address = it->first;
+        }
+    }
 
-   if (!myStats.w_scheme) { // write back
+
+   if (!myStats.w_scheme && slots[slot_address].is_dirty()) { // write back and is dirty
        // TODO: write it back (count cycle time)
+       std::cout << "this line should not execute on write-through" << std::endl;
+       myStats.mySummary->total_count = myStats.mySummary->total_count + 25*myStats.num_bytes;
    }
-   return index;
+   slots.erase(slot_address);
 }
 
 void set::update(unsigned target_tag, unsigned time){
-    for (unsigned i = 0; i < myStats.num_slots; i++) {
-        if (slots[i].getTag() == target_tag) {
-           slots[i].update(time);
-           return;
-        }
+    slots[target_tag].update(time);
+}
+
+void set::make_dirty(unsigned tag){
+    slots[tag].make_dirty();
+}
+
+void set::print_set(){
+    for(std::map<unsigned, slot>::iterator it = slots.begin(); it != slots.end(); it++) {
+        std::cout << it->first << ", " << it->second.getTag() << ", " << it->second.isValid() << std::endl;
     }
 }

@@ -27,7 +27,9 @@ int main(int argc, char* argv[]) {
   while (std::cin >> ls && std::cin >> address) {
     std::cin >> offset; // remove "random" other value from end of input
     myCache.load_store(ls, address);
+    myCache.print_current();
   }
+  // myCache.print_current();
   myCache.print_summary();
   
 }

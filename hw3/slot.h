@@ -8,19 +8,20 @@
 #ifndef SLOT_H
 #define SLOT_H
 
-#include <vector>
 #include "cache_stats.h"
 
 
 class slot {
     public: 
-        slot(unsigned new_tag, cache_stats stats);
-        void place_value(unsigned new_tag, unsigned time);
+        slot();
+        slot(unsigned new_tag, unsigned new_time, cache_stats stats);
         bool isValid();
         unsigned getTag();
         unsigned getAccessTime();
         unsigned getLoadTime();
         void update(unsigned time);
+        void make_dirty();
+        bool is_dirty();
 
     private:
         cache_stats myStats;  // information about cache

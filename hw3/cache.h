@@ -21,6 +21,7 @@ class cache {
         cache(char* input_args[]);
         void load_store(std::string ls, std::string addr);
         void print_summary();
+        void print_current();
 
     private:
         unsigned timer;
@@ -31,6 +32,7 @@ class cache {
         void cache_store(unsigned address);
         void write_cache_on_hit(unsigned block_number, unsigned index);
         void write_cache_on_miss(unsigned block_number, unsigned index);
+        
 
 };
 

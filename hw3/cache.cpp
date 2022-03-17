@@ -12,12 +12,12 @@ cache::cache(char* input_args[]) {
     myStats.num_sets = (unsigned) atoi(input_args[1]);
     myStats.num_slots = (unsigned) atoi(input_args[2]);
     myStats.num_bytes = (unsigned) atoi(input_args[3]);
-    myStats.w_alloc = (strcmp(input_args[4], "write-allocate") == 0) ? 0 : 1;     // 0 if write-allocate, 1 if no-write-allocate
-    myStats.w_scheme = (strcmp(input_args[5], "write-back") == 0) ? 0 : 1;       // 0 if write-back, 1 if write-through
-    myStats.rem_scheme = (strcmp(input_args[6], "lru") == 0) ? 0 : 1;          // 0 id LRU, 1 if FIFO
+    myStats.w_alloc = (strcmp(input_args[4], "write-allocate") == 0) ? false : true;     // 0 if write-allocate, 1 if no-write-allocate
+    myStats.w_scheme = (strcmp(input_args[5], "write-back") == 0) ? false : true;       // 0 if write-back, 1 if write-through
+    myStats.rem_scheme = (strcmp(input_args[6], "lru") == 0) ? false : true;          // 0 id LRU, 1 if FIFO
     myStats.mySummary = new cache_summary;
     
-    if (myStats.w_alloc != myStats.w_scheme) {
+    if (myStats.w_alloc && !myStats.w_scheme) {  // cannot no-write-allocate with write-back
         std::cerr << "Invalid combination of write states" << std::endl;
         throw -2;
     }
@@ -40,6 +40,7 @@ void cache::load_store(std::string ls, std::string addr){
         std::cerr << "Invalid load/store tag" << std::endl;
         throw -3;
     }
+    timer++;
     return; 
 }
 
@@ -53,23 +54,21 @@ void cache::cache_load(unsigned address) {
     unsigned index = (block_number / myStats.num_bytes) % myStats.num_sets;
 
     // insert into set
-    int set_position = sets[index].find(block_number);
-    if (set_position >= 0) {
+    //int set_position = sets[index].find(block_number);
+    if (sets[index].contains(block_number)) {
         myStats.mySummary->load_hits++;
         // cache hit
         // TODO: account for cycle time
         // update access timestamp
         sets[index].update(block_number, timer);
+        myStats.mySummary->total_count++;
     } 
     else {
         myStats.mySummary->load_misses++;
         // chache miss
-        sets[index].insert(block_number, timer); 
-    }
-
-    timer++;  
-
-    // TODO
+        sets[index].insert(block_number, timer);
+        myStats.mySummary->total_count = myStats.mySummary->total_count + 25*myStats.num_bytes; 
+    }  
     return;
 }
 
@@ -83,8 +82,8 @@ void cache::cache_store(unsigned address) {
     unsigned index = (block_number / myStats.num_bytes)  % myStats.num_sets;
 
     // insert into set
-    int set_position = sets[index].find(block_number);
-    if (set_position >= 0) {
+    //int set_position = sets[index].find(block_number);
+    if (sets[index].contains(block_number)) {
         myStats.mySummary->store_hits++;
         // cache hit
         write_cache_on_hit(block_number, index);
@@ -94,19 +93,22 @@ void cache::cache_store(unsigned address) {
         // chache miss
         write_cache_on_miss(block_number, index); 
     }
-
-    timer++;  
+  
     return;
 }
 
 void cache::write_cache_on_hit(unsigned block_number, unsigned index) {
     // update access timestamp
     sets[index].update(block_number, timer);
+    sets[index].make_dirty(block_number);
     if (myStats.w_scheme) {
-        // write-through --> access cache and access memory
+        // write-through --> access memory
+        myStats.mySummary->total_count = myStats.mySummary->total_count + 100 + 1;
+        // std::cout << "This should not run" << std::endl;
     }
     else { // write-back --> access chache only
         // update
+        myStats.mySummary->total_count++;
     }
     return;
 }
@@ -114,13 +116,25 @@ void cache::write_cache_on_hit(unsigned block_number, unsigned index) {
 void cache::write_cache_on_miss(unsigned block_number, unsigned index) {
     if (myStats.w_alloc) {
         // no-write-allocate --> access memory only
+        myStats.mySummary->total_count = myStats.mySummary->total_count + 100;
+        // std::cout << "This should not run" << std::endl;
     }
     else { // write-allocate --> access cache and memory
         sets[index].insert(block_number, timer); 
-
-        timer++;
+        sets[index].make_dirty(block_number);
+        
+        myStats.mySummary->total_count = myStats.mySummary->total_count + 25 * myStats.num_bytes + 1;
     }
     return;
+}
+
+void cache::print_current(){
+    unsigned i = 0;
+    for(std::vector<set>::iterator it = sets.begin(); it != sets.end(); it++) {
+        std::cout << "Index: " << i << std::endl;
+        it->print_set();
+        i++;
+    }
 }
 
 void cache::print_summary(){

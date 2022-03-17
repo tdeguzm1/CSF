@@ -10,20 +10,24 @@
 
 #include "slot.h"
 #include "cache_stats.h"
+#include <map>
+#include <iostream>
 
 class set {
     public: 
         set(unsigned index, cache_stats stats);
-        int find(unsigned tag);
+        bool contains(unsigned tag);
         void insert(unsigned tag, unsigned time);
         void update(unsigned target_tag, unsigned time);
+        void make_dirty(unsigned tag);
+        void print_set();
 
     private:
         unsigned index;
-        std::vector<slot> slots;
+        std::map<unsigned, slot> slots;
         cache_stats myStats;
 
-        unsigned remove();
+        void remove();
 };
 
 
