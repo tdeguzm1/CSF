@@ -7,64 +7,112 @@
 
 #include "set.h"
 
+
+/**
+ *  Constuctor for sets
+ *  
+ *  Parameters:
+ *  new_index - provides the set with information about its own index in the cache
+ *  stats - a structure providing the set with information about the entire cache
+ */
 set::set(unsigned new_index, cache_stats stats){
     index = new_index;
     myStats = stats;
 
     for (unsigned i = 0; i < myStats.num_slots; i++){
-        slots[i] = slot();
+        slots[i] = slot(); // create a map of slots
     }
-}
+} // 4 lines
 
+
+/**
+ *  Checks if this set contains the target tag
+ *  
+ *  Parameters:
+ *  target_tag - the tag to check if its in the set
+ */
 bool set::contains(unsigned target_tag) {
-    if (slots.find(target_tag) != slots.end()) {
+    // must be in the set's map and valid
+    if (slots.find(target_tag) != slots.end() && slots[target_tag].isValid()) {
         return true;
     }
     return false;
-}
+} // 3 lines
 
+
+/**
+ *  Inserts the target tag into the cache
+ *  
+ *  Parameters:
+ *  target_tag - the tag to check if its in the set
+ *  time - the current time state of the cache
+ */
 void set::insert(unsigned new_tag, unsigned time) {
    this->remove();
    slots[new_tag] = slot(new_tag, time, myStats);
+} // 2 lines
 
-}
 
+/**
+ *  Removes a value to make room (by fifo or lru as appropriate)
+ */
 void set::remove() {
-   unsigned min_time = 4294967295; // corresponds to max unsigned value
-   unsigned slot_address;
+   unsigned min_time = 4294967295; // corresponds to the maximum unsigned value
+   unsigned tag;
    for (std::map<unsigned, slot>::iterator it = slots.begin(); it != slots.end(); it++) {
         if (!it->second.isValid()) {
             slots.erase(it->first);
-            //std::cout << "empty slot should be removed" << std::endl;
-            return; // shortcut if there is a not-valid value
+            return; // shortcut if there is a not-valid value (aka slot is empty)
         }
-        else if (myStats.rem_scheme && it->second.getLoadTime() < min_time) { // fifo - remove the earliest load time
+
+        // fifo - remove the earliest load time
+        else if (myStats.rem_scheme && it->second.getLoadTime() < min_time) { 
             min_time = it->second.getLoadTime();
-            slot_address = it->first;
+            tag = it->first;
         }
-        else if (!myStats.rem_scheme && it->second.getAccessTime() < min_time) { // lru - remove the earliest access time
+
+        // lru - remove the earliest access time
+        else if (!myStats.rem_scheme && it->second.getAccessTime() < min_time) { 
             min_time = it->second.getAccessTime();
-            slot_address = it->first;
+            tag = it->first;
         }
     }
 
 
-   if (!myStats.w_scheme && slots[slot_address].is_dirty()) { // write back and is dirty
-       // TODO: write it back (count cycle time)
-       std::cout << "this line should not execute on write-through" << std::endl;
-       myStats.mySummary->total_count = myStats.mySummary->total_count + 25*myStats.num_bytes;
+   if (!myStats.w_scheme && slots[tag].is_dirty()) { // if write back and is dirty
+       myStats.mySummary->total_count = myStats.mySummary->total_count + 25*myStats.num_bytes; // takes 100 cycles per 4 bytes to write to memory
    }
-   slots.erase(slot_address);
-}
 
+   // std::cout << "Removed tag with load time: " << slots[tag].getLoadTime() << std::endl;
+   slots.erase(tag); // remove slot from cache
+   
+} // 15 lines
+
+
+/**
+ *  Updates the target tag's access timestamp with current cache time
+ *  
+ *  Parameters:
+ *  target_tag - the tag to update
+ *  time - the current time state of the cache
+ */
 void set::update(unsigned target_tag, unsigned time){
     slots[target_tag].update(time);
 }
 
+/**
+ *  Updates the target tag's dirty field 
+ *  
+ *  Parameters:
+ *  target_tag - indicates the slot to update
+ */
 void set::make_dirty(unsigned tag){
     slots[tag].make_dirty();
 }
 
+/** 
+ *  Prints the current state of the set (for debugging)
+ */
 void set::print_set(){
     for(std::map<unsigned, slot>::iterator it = slots.begin(); it != slots.end(); it++) {
         std::cout << it->first << ", " << it->second.getTag() << ", " << it->second.isValid() << std::endl;

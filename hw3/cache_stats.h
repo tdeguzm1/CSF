@@ -25,7 +25,7 @@ struct cache_stats {
     bool w_alloc;              // 0 if write-allocate, 1 if no-write-allocate
     bool w_scheme;             // 0 if write-back, 1 if write-through
     bool rem_scheme;           // 0 id LRU, 1 if FIFO
-    cache_summary* mySummary; 
+    cache_summary* mySummary;  // pointer to a summary struct that can be accessed by any subset of the cache
 };
 
 

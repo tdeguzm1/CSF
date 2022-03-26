@@ -6,17 +6,19 @@
  */
 
 
-#include <iostream>
-#include <vector>
-#include <string.h>
+#include <iostream> // C++ standard library for input/outpit
+#include <string.h> // C standard library for parsing inputs
 
+// custom created objects
 #include "slot.h"
 #include "cache.h"
 
 
 void check_valid_inputs(int num_args, char* input_args[]);
-// passsed with arguments ([0] num_sets, [1] block_per_set,  [2] bytes_per_block, [3] write_alloc, [4] write_scheme, [5] removal_scheme)
+// passsed with arguments ([1] num_sets, [2] block_per_set,  [3] bytes_per_block, [4] write_allocation, [5] write_scheme, [6] removal_scheme)
 
+
+// main driving methods
 int main(int argc, char* argv[]) {
   check_valid_inputs(argc, argv);
   cache myCache = cache(argv);
@@ -27,16 +29,22 @@ int main(int argc, char* argv[]) {
   while (std::cin >> ls && std::cin >> address) {
     std::cin >> offset; // remove "random" other value from end of input
     myCache.load_store(ls, address);
-    myCache.print_current();
+    //myCache.print_current();
   }
-  // myCache.print_current();
   myCache.print_summary();
   
-}
+} // 9 lines
 
 
 
-
+/*
+ *  Checks inputs to see if they are valid.
+ *  Note that (x & (x-1)) checks if a value is a power of 2
+ *
+ *  Parameter:
+ *  num_args - number of arguments input
+ *  input_args - array of strings containing input arguments
+ */
 void check_valid_inputs(int num_args, char* input_args[]){
   if (num_args != 7) {
       std::cerr << "Invalid number of parameters given" << std::endl;
@@ -68,4 +76,4 @@ void check_valid_inputs(int num_args, char* input_args[]){
   }
   return;
 
-}
+}  // 19 lines
