@@ -66,6 +66,7 @@ class set {
 
     private:
         unsigned index;
+        unsigned num_slots;
         std::map<unsigned, slot> slots;
         cache_stats myStats;
 

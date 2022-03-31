@@ -18,10 +18,7 @@
 set::set(unsigned new_index, cache_stats stats){
     index = new_index;
     myStats = stats;
-
-    for (unsigned i = 0; i < myStats.num_slots; i++){
-        slots[i] = slot(); // create a map of slots
-    }
+    num_slots = 0;
 } // 4 lines
 
 
@@ -33,7 +30,7 @@ set::set(unsigned new_index, cache_stats stats){
  */
 bool set::contains(unsigned target_tag) {
     // must be in the set's map and valid
-    if (slots.find(target_tag) != slots.end() && slots[target_tag].isValid()) {
+    if (slots.find(target_tag) != slots.end()) { //} && slots[target_tag].isValid()) {
         return true;
     }
     return false;
@@ -50,6 +47,7 @@ bool set::contains(unsigned target_tag) {
 void set::insert(unsigned new_tag, unsigned time) {
    this->remove();
    slots[new_tag] = slot(new_tag, time, myStats);
+   num_slots++;
 } // 2 lines
 
 
@@ -59,14 +57,17 @@ void set::insert(unsigned new_tag, unsigned time) {
 void set::remove() {
    unsigned min_time = 4294967295; // corresponds to the maximum unsigned value
    unsigned tag;
+   if (num_slots < myStats.num_slots) {
+       return;
+   }
    for (std::map<unsigned, slot>::iterator it = slots.begin(); it != slots.end(); it++) {
-        if (!it->second.isValid()) {
-            slots.erase(it->first);
-            return; // shortcut if there is a not-valid value (aka slot is empty)
-        }
+        // if (!it->second.isValid()) {
+        //     slots.erase(it->first);
+        //     return; // shortcut if there is a not-valid value (aka slot is empty)
+        // }
 
         // fifo - remove the earliest load time
-        else if (myStats.rem_scheme && it->second.getLoadTime() < min_time) { 
+        if (myStats.rem_scheme && it->second.getLoadTime() < min_time) { 
             min_time = it->second.getLoadTime();
             tag = it->first;
         }
@@ -85,7 +86,7 @@ void set::remove() {
 
    // std::cout << "Removed tag with load time: " << slots[tag].getLoadTime() << std::endl;
    slots.erase(tag); // remove slot from cache
-   
+   num_slots--;
 } // 15 lines
 
 

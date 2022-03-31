@@ -54,6 +54,11 @@ class cache {
          */
         void print_current();
 
+        /**
+         *  Returns a struct of the cache summary for the experiment
+         */
+        cache_summary getSummary() { return *(myStats.mySummary); }
+
     private:
         unsigned timer;            // keep track of time in simulation (for fifo/lru)
         cache_stats myStats;       // a struct containting info about the cache
@@ -92,6 +97,7 @@ class cache {
          *  index - unsidned indicating the index
          */
         void write_cache_on_miss(unsigned block_number, unsigned index);
+
         
 };
 
