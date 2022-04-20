@@ -1,0 +1,17 @@
+msg got says: rlogin:alice
+msg sent says: rlogin:alice
+Input read is: /join partytime
+msg got says: join:partytime
+msg sent says: join:partytime
+Input read is: Hello World!
+msg got says: sendall:Hello World!
+msg sent says: sendall:Hello World!
+Input read is: /join cafe
+msg got says: join:cafe
+msg sent says: join:cafe
+Input read is: get me 1 coffee
+msg got says: sendall:get me 1 coffee
+msg sent says: sendall:get me 1 coffee
+Input read is: /quit
+msg got says: quit:bye
+msg sent says: quit:bye

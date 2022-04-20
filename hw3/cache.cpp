@@ -24,16 +24,11 @@ cache::cache(char* input_args[]) {
     myStats.w_scheme = (strcmp(input_args[5], "write-back") == 0) ? false : true;       // 0 if write-back, 1 if write-through
     myStats.rem_scheme = (strcmp(input_args[6], "lru") == 0) ? false : true;          // 0 id LRU, 1 if FIFO
     myStats.mySummary = new cache_summary;
-    
-    if (myStats.w_alloc && !myStats.w_scheme) {  // cannot no-write-allocate with write-back
-        std::cerr << "Invalid combination of write states" << std::endl;
-        throw -2;
-    }
 
     for (unsigned i = 0; i < myStats.num_sets; i++){
         sets.push_back(set(i, myStats));
     }
-}  // 13 lines
+}  // 10 lines
 
 /**
  *  Destructor for cache object
@@ -88,12 +83,12 @@ void cache::cache_load(unsigned address) {
     if (sets[index].contains(tag)) {       // load hit
         sets[index].update(tag, timer);    // update acess timestamp
         myStats.mySummary->load_hits++;
-        myStats.mySummary->total_count++;  // one load from cache takes one count
+        myStats.mySummary->total_count += COUNTS_4_BYTE_CACHE;  // one load from cache takes one count
     } 
     else {  // load miss
         sets[index].insert(tag, timer);    // load value into cache
         myStats.mySummary->load_misses++; 
-        myStats.mySummary->total_count = myStats.mySummary->total_count + 25*myStats.num_bytes; // load from memory takes 100 counts per 4 bytes
+        myStats.mySummary->total_count = myStats.mySummary->total_count + COUNTS_4_BYTE_MEMORY/4*myStats.num_bytes; // load from memory takes 100 counts per 4 bytes
     }  
     return;
 }
@@ -140,10 +135,10 @@ void cache::write_cache_on_hit(unsigned tag, unsigned index) {
     sets[index].make_dirty(tag);
     
     if (myStats.w_scheme) { // write-through --> access cache (4 bytes takes 1 count) & access memory (4 bytes takes 100 counts)
-        myStats.mySummary->total_count = myStats.mySummary->total_count + 100 + 1;
+        myStats.mySummary->total_count = myStats.mySummary->total_count + COUNTS_4_BYTE_MEMORY + COUNTS_4_BYTE_CACHE;
     }
     else { // write-back --> access chache (4 bytes takes 1 count)
-        myStats.mySummary->total_count++;
+        myStats.mySummary->total_count += COUNTS_4_BYTE_CACHE;
     }
     return;
 } // 7 lines
@@ -158,12 +153,12 @@ void cache::write_cache_on_hit(unsigned tag, unsigned index) {
  */
 void cache::write_cache_on_miss(unsigned tag, unsigned index) {
     if (myStats.w_alloc) { // no-write-allocate --> access memory only
-        myStats.mySummary->total_count = myStats.mySummary->total_count + 100; // a 4 byte store takes 100 counts
+        myStats.mySummary->total_count = myStats.mySummary->total_count + COUNTS_4_BYTE_MEMORY;
     }
     else { // write-allocate --> access cache and memory
         sets[index].insert(tag, timer); 
         sets[index].make_dirty(tag);
-        myStats.mySummary->total_count = myStats.mySummary->total_count + 25 * myStats.num_bytes + 1;
+        myStats.mySummary->total_count = myStats.mySummary->total_count + COUNTS_4_BYTE_MEMORY/4 * myStats.num_bytes + COUNTS_4_BYTE_CACHE;
     }
     return;
 } // 7 lines

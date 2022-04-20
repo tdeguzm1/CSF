@@ -8,12 +8,6 @@ CFLAGS = $(CONSERVATIVE_FLAGS) $(DEBUGGING_FLAGS)
 csim: main.o cache.o set.o slot.o
 	$(CC) -o csim main.o cache.o slot.o set.o
 
-cexper: experiment.o cache.o set.o slot.o
-	$(CC) -o cexper experiment.o cache.o slot.o set.o
-
-experiment.o: experiment.cpp slot.h slot.cpp set.h set.cpp cache.h cache.cpp
-	$(CC) -c experiment.cpp $(CFLAGS)
-
 main.o: main.cpp slot.h slot.cpp set.h set.cpp cache.h cache.cpp
 	$(CC) -c main.cpp $(CFLAGS)
 

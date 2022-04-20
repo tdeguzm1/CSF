@@ -61,10 +61,6 @@ void set::remove() {
        return;
    }
    for (std::map<unsigned, slot>::iterator it = slots.begin(); it != slots.end(); it++) {
-        // if (!it->second.isValid()) {
-        //     slots.erase(it->first);
-        //     return; // shortcut if there is a not-valid value (aka slot is empty)
-        // }
 
         // fifo - remove the earliest load time
         if (myStats.rem_scheme && it->second.getLoadTime() < min_time) { 
@@ -81,7 +77,7 @@ void set::remove() {
 
 
    if (!myStats.w_scheme && slots[tag].is_dirty()) { // if write back and is dirty
-       myStats.mySummary->total_count = myStats.mySummary->total_count + 25*myStats.num_bytes; // takes 100 cycles per 4 bytes to write to memory
+       myStats.mySummary->total_count = myStats.mySummary->total_count + COUNTS_4_BYTE_MEMORY/4*myStats.num_bytes; // write back to memory
    }
 
    // std::cout << "Removed tag with load time: " << slots[tag].getLoadTime() << std::endl;

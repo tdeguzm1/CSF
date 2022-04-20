@@ -13,6 +13,9 @@
 #include <map>
 #include <iostream>
 
+#define COUNTS_4_BYTE_MEMORY 100 // counts to access 4 bytes of memory
+#define COUNTS_4_BYTE_CACHE 1 // counts to access 4 bytes of cache
+
 class set {
     public: 
 
@@ -66,8 +69,8 @@ class set {
 
     private:
         unsigned index;
-        unsigned num_slots;
-        std::map<unsigned, slot> slots;
+        unsigned num_slots; // number of filled slots
+        std::map<unsigned, slot> slots; // map of slots
         cache_stats myStats;
 
         /**
