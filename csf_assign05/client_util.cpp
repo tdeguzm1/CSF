@@ -22,3 +22,12 @@ std::string rtrim(const std::string &s) {
 std::string trim(const std::string &s) {
   return rtrim(ltrim(s));
 }
+
+bool nameValid(std::string name){
+  for (std::string::iterator it = name.begin(); it != name.end(); it++) {
+    if(!(isalpha(*it) || isdigit(*it))) {
+      return false;
+    }
+  }
+  return true;
+}

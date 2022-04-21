@@ -8,6 +8,7 @@
 #include "client_util.h"
 
 std::string getRoomName(std::string input);
+bool nameValid(std::string name);
 
 int main(int argc, char **argv) {
   if (argc != 4) {
@@ -25,6 +26,11 @@ int main(int argc, char **argv) {
 
   // Connection conn;
 
+  if (!nameValid(username)) {
+    std::cerr << "Invalid username" << std::endl;
+    return -1;
+  }
+
   // TODO: connect to server
 
   Connection *conn = new Connection();
@@ -33,14 +39,16 @@ int main(int argc, char **argv) {
   // TODO: send slogin message
 
   Message login_msg = Message();
+
   
-  conn->send(Message(TAG_RLOGIN, username));
+  conn->send(Message(TAG_SLOGIN, username));
   conn->receive(login_msg);
+  std::cout << login_msg.tag << ":" << login_msg.data << std::endl;
   
   if (login_msg.tag == TAG_ERR) {
     std::cerr << login_msg.data;
     delete conn;
-    throw -1;
+    return -1;
   }  
 
   // TODO: loop reading commands from user, sending messages to
@@ -50,49 +58,67 @@ int main(int argc, char **argv) {
     getline(std::cin, input); // check if this is memory safe
     input = trim(input);
 
-    std::cout << "Input read is: " << input << std::endl;
+    // std::cout << "Input read is: " << input << std::endl;
 
     if (input.find("/join") != std::string::npos) {
       Message join_msg = Message();
-      conn->send(Message(TAG_JOIN, getRoomName(input)));
+      std::string roomname = getRoomName(input);
+
+      // if (!nameValid(roomname)) {
+      //   std::cerr << "Invalid roomname" << std::endl;
+      //   continue;
+      // }
+
+      conn->send(Message(TAG_JOIN, roomname));
       conn->receive(join_msg);
+      // std::cout << join_msg.tag << ":" << join_msg.data << std::endl;
   
-      if(join_msg.tag == TAG_ERR) {
+      if(join_msg.tag != TAG_OK) {
         std::cerr << join_msg.data;
-        throw -2;
       }
+
     } else if (input == "/leave") {
       Message leave_msg = Message();
       conn->send(Message(TAG_LEAVE, ""));
       conn->receive(leave_msg);
+      // std::cout << leave_msg.tag << ":" << leave_msg.data << std::endl;
 
-      if (leave_msg.tag == TAG_ERR) {
+      if (leave_msg.tag != TAG_OK) {
         std::cerr << leave_msg.data;
       }
 
     } else if (input != "/quit") {
-      Message confim_msg = Message();
+      Message confirm_msg = Message();
       conn->send(Message(TAG_SENDALL, input));
-      conn->receive(confim_msg);
+      conn->receive(confirm_msg);
+      // std::cout << confirm_msg.tag << ":" << confirm_msg.data << std::endl;
 
-      if (confim_msg.tag == TAG_ERR) {
-        std::cerr << confim_msg.data;
+      if (confirm_msg.tag != TAG_OK) {
+        std::cerr << confirm_msg.data;
       }
+
     }
 
   } while (input != "/quit");
+  
 
+  // add back
   Message quit_msg = Message();
   conn->send(Message(TAG_QUIT, "bye"));
-  conn->receive(quit_msg);
+  conn->receive(quit_msg); 
+  
+  std::cout << quit_msg.tag << ": " << quit_msg.data << std::endl;
+  
 
-  if (quit_msg.tag == TAG_ERR) {
+  // add back
+  if (quit_msg.tag != TAG_OK) {
+    //std::cout << "error was thrown";
     std::cerr << quit_msg.data;
     delete conn;
-    throw 4;
+    return 4;
   }
-
-  conn->close();
+  
+  // conn->close();
   delete conn;
 
   return 0;

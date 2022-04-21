@@ -47,7 +47,7 @@ int main(int argc, char **argv) {
     //std::cout << "rlogin error detected" << std::endl;
     std::cerr << login_msg.data;
     delete conn;
-    throw 1;
+    return 1;
   }  
   //std::cout << "rlogin complete" << std::endl;
   
@@ -57,7 +57,7 @@ int main(int argc, char **argv) {
   if (join_msg.tag == TAG_ERR) {
     std::cerr << join_msg.data;
     delete conn;
-    throw 2;
+    return 2;
   }
 
 
@@ -83,7 +83,7 @@ int main(int argc, char **argv) {
 }
 
 void printMessage(std::string data) {
-   //std::cout << "print Message reached: ";
+   // std::cout << "raw Message: " << data << std::endl;
    size_t sender = data.find(":");
    data = data.substr(sender + 1);
 

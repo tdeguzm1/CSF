@@ -55,7 +55,7 @@ Connection::~Connection() {
 
 bool Connection::is_open() const {
   // TODO: return true if the connection is open
-  return m_fd > 0;
+  return m_fd >= 0;
 
 }
 
@@ -63,6 +63,7 @@ void Connection::close() {
   // TODO: close the connection if it is open
   if (is_open()) {
     Close(m_fd);
+    m_fd = -1;
   }
 
 }
@@ -74,7 +75,7 @@ bool Connection::send(const Message &msg) {
   // std::stringstream m;
   std::string string_message;
 
-  std::cout << "msg got says: " << msg.tag << ":" << msg.data << std::endl;
+  //std::cout << "msg got says: " << msg.tag << ":" << msg.data << std::endl;
 
   //m << msg.tag << ":" << msg.data << std::endl;
   //m >> string_message;
@@ -85,7 +86,7 @@ bool Connection::send(const Message &msg) {
 
   // string_message.append("\n");
 
-  std::cout << "msg sent says: " << string_message;
+  //std::cout << "msg sent says: " << string_message;
   
   rio_writen(m_fd, string_message.c_str(), string_message.length()); // send message to server
   
@@ -101,18 +102,39 @@ bool Connection::receive(Message &msg) {
   char buf[msg.MAX_LEN + 1];
   ssize_t n = rio_readlineb(&m_fdbuf, buf, sizeof(buf));
   
-  std::stringstream s;
-  std::string ms;
+  // std::cout << "buffer recieved: " << buf << std::endl;
+  
+  char cTag[msg.MAX_LEN + 1];
+  char cData[msg.MAX_LEN + 1];
 
-  s << buf;
-  s >> ms;
+  char* ptr = strchr(buf, ':');
+  ptrdiff_t index = ptr - buf;
 
-  size_t tag_end = ms.find(":");
-  size_t message_end = ms.find("\n");
+
+  memcpy(cTag, buf, (size_t) index);
+  cTag[index] = '\0';
+  strcpy(cData, ptr + 1);
+
+  //std::stringstream s;
+  //std::string ms;
+
+  //s << buf;
+  //s >> ms;
+
+  //std::cout << "string recieved: " << ms << std::endl;
+
+  //size_t tag_end = ms.find(":");
+  //size_t message_end = ms.find("\n");
   // handle if cannot find colon
 
-  msg.tag = ms.substr(0, tag_end);
-  msg.data = ms.substr(tag_end + 1, message_end);
+  //msg.tag = ms.substr(0, tag_end);
+  //msg.data = ms.substr(tag_end + 1, message_end);
+  
+  std::string cppTag(cTag);
+  std::string cppData(cData);
+
+  msg.tag = cppTag;
+  msg.data = cppData;
 
   if (n > 0) {
     return true;
