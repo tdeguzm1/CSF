@@ -4,14 +4,23 @@
 
 MessageQueue::MessageQueue() {
   // TODO: initialize the mutex and the semaphore
+  pthread_mutex_init(&m_lock, nullptr);
+  sem_init(&m_avail, 0, 0);
 }
 
 MessageQueue::~MessageQueue() {
   // TODO: destroy the mutex and the semaphore
+  pthread_mutex_destroy(&m_lock);
+  sem_destroy(&m_avail);
 }
 
 void MessageQueue::enqueue(Message *msg) {
   // TODO: put the specified message on the queue
+
+  pthread_mutex_lock(&m_lock);
+  m_messages.push_front(msg);
+  pthread_mutex_unlock(&m_lock);
+  sem_post(&m_avail);
 
   // be sure to notify any thread waiting for a message to be
   // available by calling sem_post
@@ -31,8 +40,17 @@ Message *MessageQueue::dequeue() {
 
   // TODO: call sem_timedwait to wait up to 1 second for a message
   //       to be available, return nullptr if no message is available
-
+  if(sem_timedwait(&m_avail, &ts) == -1) {
+    return nullptr;
+  }
   // TODO: remove the next message from the queue, return it
   Message *msg = nullptr;
+  pthread_mutex_lock(&m_lock);
+  msg = m_messages.back();
+  m_messages.pop_back(); /// TODO figure out what happens sem posts, but lock is obtained by someone else
+  pthread_mutex_unlock(&m_lock);
+  
+
+
   return msg;
 }

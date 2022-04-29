@@ -1,3 +1,10 @@
+/*
+ * Reciever as a client for a chat server
+ * CSF Assignment 5.1
+ * Theo DeGuzman
+ * tdeguzm1@jhu.edu
+ */
+
 #ifndef CONNECTION_H
 #define CONNECTION_H
 
@@ -30,6 +37,8 @@ public:
   // Connect to a server via specified hostname and port number.
   void connect(const std::string &hostname, int port);
   void connect(const char* hostname, const char* port);
+
+  bool convertToMsg(Message &msg, char* buff);
 
   bool is_open() const;
 
